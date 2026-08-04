@@ -4,12 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบบันทึกอุปกรณ์</title>
-  <!-- โหลด LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 20px;
+      padding: 15px;
       background-color: #f4f4f7;
     }
     .card {
@@ -17,19 +16,19 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      max-width: 400px;
+      max-width: 450px;
       margin: 0 auto;
     }
     h2 { color: #06C755; text-align: center; margin-top: 0; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
-    input[type="text"], textarea {
+    .form-group { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px; }
+    input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
       box-sizing: border-box;
-      font-size: 16px;
+      font-size: 15px;
     }
     button {
       width: 100%;
@@ -41,6 +40,7 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      margin-top: 10px;
     }
     button:disabled { background-color: #ccc; }
   </style>
@@ -51,31 +51,57 @@
     <h2>บันทึกข้อมูลอุปกรณ์</h2>
     
     <div class="form-group">
-      <label for="recordedBy">ผู้บันทึก (LINE):</label>
+      <label>ผู้บันทึก (LINE):</label>
       <input type="text" id="recordedBy" placeholder="กำลังดึงชื่อ LINE..." readonly>
     </div>
 
     <div class="form-group">
-      <label for="equipmentName">ชื่ออุปกรณ์/รายการ:</label>
-      <input type="text" id="equipmentName" placeholder="ระบุชื่ออุปกรณ์">
+      <label>หมู่ / หมวดหมู่:</label>
+      <input type="text" id="group" placeholder="เช่น IT, Office">
     </div>
 
     <div class="form-group">
-      <label for="note">หมายเหตุ:</label>
-      <textarea id="note" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม"></textarea>
+      <label>ยี่ห้อ (Brand):</label>
+      <input type="text" id="brand" placeholder="เช่น APC, Dell">
+    </div>
+
+    <div class="form-group">
+      <label>รุ่น (Model):</label>
+      <input type="text" id="model" placeholder="เช่น Aa, PowerEdge">
+    </div>
+
+    <div class="form-group">
+      <label>Serial No:</label>
+      <input type="text" id="serial" placeholder="ระบุ Serial Number">
+    </div>
+
+    <div class="form-group">
+      <label>จำนวน:</label>
+      <input type="number" id="quantity" value="1" min="1">
+    </div>
+
+    <div class="form-group">
+      <label>สถานที่จัดเก็บ:</label>
+      <input type="text" id="location" placeholder="เช่น B2F5, B3F4">
+    </div>
+
+    <div class="form-group">
+      <label>สถานะอุปกรณ์:</label>
+      <select id="status">
+        <option value="ใช้งานปกติ">ใช้งานปกติ</option>
+        <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
+        <option value="ส่งซ่อม">ส่งซ่อม</option>
+        <option value="เลิกใช้งาน">เลิกใช้งาน</option>
+      </select>
     </div>
 
     <button id="btnSubmit" onclick="saveData()">บันทึกข้อมูล</button>
   </div>
 
   <script>
-    // 🔴 1. วาง Web App URL จาก Google Apps Script (ที่ลงท้ายด้วย /exec) ตรงนี้
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFEuKtaVeBsnBRKWOjeeOglbZbeWV9D4F221B4GQ-uYqsyS8VVfNMvJPN4lHCWHLk/exec";
-
-    // 🟢 2. วาง LIFF ID ของคุณตรงนี้
     const LIFF_ID = "2010924055-ptu13GAx";
 
-    // ดึงข้อมูลชื่อจาก LINE LIFF
     async function initLiff() {
       try {
         await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
@@ -90,38 +116,36 @@
       }
     }
 
-    // ฟังก์ชันส่งข้อมูลไปบันทึกลง Google Sheets
     async function saveData() {
-      const recordedBy = document.getElementById("recordedBy").value;
-      const equipmentName = document.getElementById("equipmentName").value;
-      const note = document.getElementById("note").value;
-
-      if (!equipmentName) {
-        alert("กรุณากรอกชื่ออุปกรณ์");
-        return;
-      }
-
       const btn = document.getElementById("btnSubmit");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึก...";
 
       const payload = {
-        recordedBy: recordedBy,
-        equipmentName: equipmentName,
-        note: note
+        recordedBy: document.getElementById("recordedBy").value,
+        group: document.getElementById("group").value,
+        brand: document.getElementById("brand").value,
+        model: document.getElementById("model").value,
+        serial: document.getElementById("serial").value,
+        quantity: document.getElementById("quantity").value,
+        location: document.getElementById("location").value,
+        status: document.getElementById("status").value
       };
 
       try {
         await fetch(GAS_WEB_APP_URL, {
           method: "POST",
-          mode: "no-cors", // ใช้ no-cors เพื่อส่งข้อมูลข้าม Domain เข้า Google Apps Script
+          mode: "no-cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
         alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-        document.getElementById("equipmentName").value = "";
-        document.getElementById("note").value = "";
+        document.getElementById("group").value = "";
+        document.getElementById("brand").value = "";
+        document.getElementById("model").value = "";
+        document.getElementById("serial").value = "";
+        document.getElementById("location").value = "";
       } catch (err) {
         alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
         console.error(err);
