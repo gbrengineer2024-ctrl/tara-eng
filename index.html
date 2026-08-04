@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ทดสอบ LIFF บน GitHub Pages</title>
-  <!-- โหลด LIFF SDK 2.x -->
+  <title>ระบบบันทึกอุปกรณ์</title>
+  <!-- โหลด LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body {
@@ -22,8 +22,8 @@
     }
     h2 { color: #06C755; text-align: center; margin-top: 0; }
     .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; font-weight: bold; }
-    input[type="text"] {
+    label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
+    input[type="text"], textarea {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
@@ -31,82 +31,107 @@
       box-sizing: border-box;
       font-size: 16px;
     }
-    #status-log {
-      margin-top: 15px;
-      padding: 10px;
-      background: #1e1e1e;
-      color: #00ff66;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      word-break: break-all;
-      max-height: 180px;
-      overflow-y: auto;
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #06C755;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
     }
+    button:disabled { background-color: #ccc; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h2>ทดสอบดึงชื่อ LINE (GitHub Pages)</h2>
+    <h2>บันทึกข้อมูลอุปกรณ์</h2>
     
     <div class="form-group">
-      <label for="recordedBy">ผู้บันทึก (Display Name):</label>
-      <input type="text" id="recordedBy" placeholder="กำลังดึงข้อมูล..." readonly>
+      <label for="recordedBy">ผู้บันทึก (LINE):</label>
+      <input type="text" id="recordedBy" placeholder="กำลังดึงชื่อ LINE..." readonly>
     </div>
 
-    <label>สถานะการทำงาน (Log):</label>
-    <div id="status-log">กำลังเริ่มต้นระบบ...</div>
+    <div class="form-group">
+      <label for="equipmentName">ชื่ออุปกรณ์/รายการ:</label>
+      <input type="text" id="equipmentName" placeholder="ระบุชื่ออุปกรณ์">
+    </div>
+
+    <div class="form-group">
+      <label for="note">หมายเหตุ:</label>
+      <textarea id="note" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม"></textarea>
+    </div>
+
+    <button id="btnSubmit" onclick="saveData()">บันทึกข้อมูล</button>
   </div>
 
   <script>
-    function writeLog(msg) {
-      const logDiv = document.getElementById("status-log");
-      logDiv.innerHTML += "\n> " + msg;
-      logDiv.scrollTop = logDiv.scrollHeight;
-      console.log(msg);
-    }
+    // 🔴 1. วาง Web App URL จาก Google Apps Script (ที่ลงท้ายด้วย /exec) ตรงนี้
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycb.../exec";
 
-    async function getUserProfile() {
+    // 🟢 2. วาง LIFF ID ของคุณตรงนี้
+    const LIFF_ID = "2010924055-ptu13GAx";
+
+    // ดึงข้อมูลชื่อจาก LINE LIFF
+    async function initLiff() {
       try {
-        writeLog("กำลังดึงข้อมูล Profile...");
-        const profile = await liff.getProfile();
-        if (profile && profile.displayName) {
-          document.getElementById("recordedBy").value = profile.displayName;
-          writeLog("สำเร็จ! ชื่อ LINE: " + profile.displayName);
-        }
-      } catch (err) {
-        writeLog("ERROR (getProfile): " + err.message);
-      }
-    }
-
-    async function main() {
-      // LIFF ID ของคุณ
-      const liffId = "2010924055-ptu13GAx";
-      
-      try {
-        writeLog("กำลังเชื่อมต่อ LIFF...");
-        await liff.init({ 
-          liffId: liffId,
-          withLoginOnExternalBrowser: true 
-        });
-
-        writeLog("LIFF Init สำเร็จ!");
-
+        await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
         if (liff.isLoggedIn()) {
-          writeLog("สถานะ: ล็อกอินแล้ว");
-          await getUserProfile();
+          const profile = await liff.getProfile();
+          document.getElementById("recordedBy").value = profile.displayName;
         } else {
-          writeLog("สถานะ: ยังไม่ได้ล็อกอิน กำลังเปิดหน้าล็อกอิน...");
           liff.login();
         }
       } catch (err) {
-        writeLog("ERROR (init): " + err.message);
+        console.error("LIFF Init Error:", err);
       }
     }
 
-    window.onload = main;
+    // ฟังก์ชันส่งข้อมูลไปบันทึกลง Google Sheets
+    async function saveData() {
+      const recordedBy = document.getElementById("recordedBy").value;
+      const equipmentName = document.getElementById("equipmentName").value;
+      const note = document.getElementById("note").value;
+
+      if (!equipmentName) {
+        alert("กรุณากรอกชื่ออุปกรณ์");
+        return;
+      }
+
+      const btn = document.getElementById("btnSubmit");
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึก...";
+
+      const payload = {
+        recordedBy: recordedBy,
+        equipmentName: equipmentName,
+        note: note
+      };
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors", // ใช้ no-cors เพื่อส่งข้อมูลข้าม Domain เข้า Google Apps Script
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+        document.getElementById("equipmentName").value = "";
+        document.getElementById("note").value = "";
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "บันทึกข้อมูล";
+      }
+    }
+
+    window.onload = initLiff;
   </script>
 
 </body>
