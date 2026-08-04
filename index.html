@@ -18,7 +18,6 @@
     padding: 12px 0 30px 0;
   }
 
-  /* ปุ่มสลับรายการ (กรอบสีเขียว) */
   .ios-segmented-control {
     background: #E3E3E9;
     border-radius: 10px;
@@ -83,13 +82,24 @@
     padding: 14px;
     margin: 0 16px 10px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .img-preview {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
   }
 </style>
 </head>
 
 <body>
 
-<!-- ปุ่มสลับรายการกับบันทึก (Segmented Control) -->
+<!-- ปุ่มสลับรายการกับบันทึก -->
 <div class="ios-segmented-control">
   <button id="btnForm" class="ios-segment-btn active" onclick="switchView('form')">บันทึกอุปกรณ์</button>
   <button id="btnList" class="ios-segment-btn" onclick="switchView('list')">รายการทั้งหมด</button>
@@ -98,6 +108,8 @@
 <!-- หน้าฟอร์มบันทึก -->
 <div id="formView">
   <div class="ios-card">
+    <input type="hidden" id="rowIndex">
+
     <label class="form-label small fw-bold text-secondary">ชื่ออุปกรณ์ *</label>
     <input id="name" class="form-control ios-input" placeholder="ระบุชื่ออุปกรณ์">
 
@@ -137,11 +149,19 @@
       <option value="ใช้งานปกติ">ใช้งานปกติ</option>
       <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
       <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
-      <option value="ไม่ได้ใช้งาน">ไม่ได้ใช้งาน</option>
+      <option value="ชำรุด/ไม่ได้ใช้งาน">ชำรุด/ไม่ได้ใช้งาน</option>
     </select>
+
+    <!-- แนบรูปภาพ / ถ่ายรูป -->
+    <label class="form-label small fw-bold text-secondary mt-2">รูปภาพอุปกรณ์</label>
+    <input type="file" id="imageInput" class="form-control ios-input" accept="image/*" capture="environment" onchange="previewImage(event)">
+    <div id="imagePreviewBox" class="mt-2 text-center" style="display:none;">
+      <img id="imgPreview" class="img-preview mb-2"><br>
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">ลบรูปภาพ</button>
+    </div>
   </div>
 
-  <button class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
+  <button class="ios-btn-main" id="btnSubmit" onclick="saveData()">บันทึกข้อมูล</button>
 </div>
 
 <!-- หน้าแสดงรายการ -->
@@ -150,7 +170,28 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx1ic3mtGPevamrdaqvVHUm45Dd6attuAH8M3LLQ2AmNnYbjxHWNjH1D-ByQd3ys2ue/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx4HiGtW3JR2Q1HPzDCdY2h4QcbUipppdzVQzviuQJ5CDgfI3mYcMNtYrO4EuqYWqTZ/exec";
+let globalData = [];
+let base64Image = "";
+
+function previewImage(event) {
+  let file = event.target.files[0];
+  if (file) {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      base64Image = e.target.result;
+      document.getElementById("imgPreview").src = base64Image;
+      document.getElementById("imagePreviewBox").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeImage() {
+  base64Image = "";
+  document.getElementById("imageInput").value = "";
+  document.getElementById("imagePreviewBox").style.display = "none";
+}
 
 function switchView(view) {
   if (view === 'form') {
@@ -176,8 +217,10 @@ async function saveData() {
 
   Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
+  let rowIdx = document.getElementById("rowIndex").value;
   let payload = {
-    action: "create",
+    action: rowIdx ? "update" : "create",
+    rowIndex: rowIdx,
     name: name,
     category: document.getElementById("category").value,
     brand: document.getElementById("brand").value,
@@ -186,7 +229,8 @@ async function saveData() {
     quantity: document.getElementById("quantity").value,
     unit: document.getElementById("unit").value,
     location: document.getElementById("location").value,
-    status: document.getElementById("status").value
+    status: document.getElementById("status").value,
+    image: base64Image
   };
 
   try {
@@ -211,21 +255,31 @@ async function loadData() {
   try {
     let res = await fetch(GAS_URL + "?action=readAll");
     let result = await res.json();
-    let data = result.data || [];
+    globalData = result.data || [];
 
-    if (data.length === 0) {
+    if (globalData.length === 0) {
       box.innerHTML = '<div class="text-center py-4 text-secondary">ไม่มีรายการอุปกรณ์</div>';
       return;
     }
 
     let html = "";
-    data.forEach(item => {
+    globalData.forEach(item => {
       html += `
         <div class="item-card">
-          <div class="fw-bold fs-6">${item.name}</div>
-          <div class="small text-secondary mt-1">
-            หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
-            จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span>
+          <div>
+            <div class="fw-bold fs-6">${item.name}</div>
+            <div class="small text-secondary mt-1">
+              หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
+              จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" onclick="editData(${item.rowIndex})">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteData(${item.rowIndex})">
+              <i class="bi bi-trash-fill"></i>
+            </button>
           </div>
         </div>
       `;
@@ -236,10 +290,59 @@ async function loadData() {
   }
 }
 
+function editData(rowIndex) {
+  let item = globalData.find(x => x.rowIndex == rowIndex);
+  if (!item) return;
+
+  document.getElementById("rowIndex").value = item.rowIndex;
+  document.getElementById("name").value = item.name || "";
+  document.getElementById("category").value = item.category || "";
+  document.getElementById("brand").value = item.brand || "";
+  document.getElementById("model").value = item.model || "";
+  document.getElementById("serialNo").value = item.serialNo || "";
+  document.getElementById("quantity").value = item.quantity || 1;
+  document.getElementById("unit").value = item.unit || "";
+  document.getElementById("location").value = item.location || "";
+  document.getElementById("status").value = item.status || "ใช้งานปกติ";
+
+  document.getElementById("btnSubmit").innerText = "อัปเดตข้อมูล";
+  switchView('form');
+}
+
+async function deleteData(rowIndex) {
+  let confirm = await Swal.fire({
+    title: 'ยืนยันการลบ?',
+    text: "คุณต้องการลบรายการนี้ใช่หรือไม่",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'ลบรายการ',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (confirm.isConfirmed) {
+    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      await fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "delete", rowIndex: rowIndex })
+      });
+      Swal.fire({ icon: 'success', title: 'ลบสำเร็จ' });
+      loadData();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
+    }
+  }
+}
+
 function resetForm() {
+  document.getElementById("rowIndex").value = "";
   document.querySelectorAll("#formView input").forEach(i => i.value = "");
   document.getElementById("quantity").value = 1;
   document.getElementById("status").value = "ใช้งานปกติ";
+  document.getElementById("btnSubmit").innerText = "บันทึกข้อมูล";
+  removeImage();
 }
 </script>
 
