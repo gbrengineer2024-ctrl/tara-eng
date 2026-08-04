@@ -5,351 +5,180 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ระบบบันทึกอุปกรณ์</title>
 
-<!-- iOS Style Framework & Icons -->
+<!-- Framework & Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
-  :root {
-    --ios-bg: #F2F2F7;
-    --ios-card: #FFFFFF;
-    --ios-blue: #007AFF;
-    --ios-blue-tap: #0056B3;
-    --ios-gray-input: #EFEFF4;
-    --ios-label: #3C3C43;
-    --ios-border: #E5E5EA;
-  }
-
   body {
-    background-color: var(--ios-bg);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Sarabun", sans-serif;
-    color: #000000;
-    -webkit-font-smoothing: antialiased;
-    padding-bottom: 30px;
+    background-color: #F2F2F7;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Sarabun", sans-serif;
+    padding: 12px 0 30px 0;
   }
 
-  .ios-navbar {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    border-bottom: 0.5px solid rgba(0, 0, 0, 0.15);
-    padding: 12px 16px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 17px;
-  }
-
+  /* ปุ่มสลับรายการ (กรอบสีเขียว) */
   .ios-segmented-control {
-    background: rgba(118, 118, 128, 0.12);
-    border-radius: 9px;
-    padding: 2px;
+    background: #E3E3E9;
+    border-radius: 10px;
+    padding: 3px;
     display: flex;
-    margin: 16px;
+    margin: 0 16px 16px 16px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
   }
 
   .ios-segment-btn {
     flex: 1;
     border: none;
     background: transparent;
-    padding: 6px 0;
-    font-size: 13px;
+    padding: 8px 0;
+    font-size: 15px;
     font-weight: 500;
-    border-radius: 7px;
+    border-radius: 8px;
+    color: #636366;
     transition: all 0.2s ease;
-    color: #000;
   }
 
   .ios-segment-btn.active {
     background: #FFFFFF;
+    color: #000000;
     box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.12), 0px 3px 1px rgba(0, 0, 0, 0.04);
     font-weight: 600;
   }
 
   .ios-card {
-    background: var(--ios-card);
-    border-radius: 12px;
+    background: #FFFFFF;
+    border-radius: 14px;
     padding: 16px;
     margin: 0 16px 16px 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-  }
-
-  .ios-label {
-    font-size: 13px;
-    color: rgba(60, 60, 67, 0.7);
-    margin-bottom: 6px;
-    font-weight: 500;
-    display: block;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
   .ios-input {
-    background: var(--ios-gray-input) !important;
+    background: #EFEFF4 !important;
     border: none !important;
     border-radius: 10px !important;
     padding: 10px 14px !important;
-    font-size: 15px !important;
-    color: #000 !important;
-    box-shadow: none !important;
     margin-bottom: 12px;
-  }
-
-  .ios-input:focus {
-    background: #E5E5EA !important;
+    font-size: 15px !important;
   }
 
   .ios-btn-main {
-    background: var(--ios-blue);
+    background: #007AFF;
     color: white;
     border: none;
     border-radius: 12px;
     padding: 14px;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     width: calc(100% - 32px);
     margin: 0 16px;
-    display: block;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
   }
 
-  .ios-btn-main:active {
-    background: var(--ios-blue-tap);
-    transform: scale(0.98);
-  }
-
-  .ios-upload-btn {
-    background: #FFFFFF;
-    border: 1.5px dashed var(--ios-blue);
-    color: var(--ios-blue);
+  .item-card {
+    background: white;
     border-radius: 12px;
-    padding: 12px;
-    width: 100%;
-    text-align: center;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s;
-  }
-
-  .ios-upload-btn:active {
-    background: rgba(0, 122, 255, 0.05);
-  }
-
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .gallery-item {
-    position: relative;
-    width: 100%;
-    padding-top: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #E5E5EA;
-  }
-
-  .gallery-item img {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-
-  .gallery-item .btn-del {
-    position: absolute;
-    top: 4px; right: 4px;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px; height: 20px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    padding: 14px;
+    margin: 0 16px 10px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 </style>
 </head>
 
 <body>
 
-<div class="ios-navbar">
-  ระบบบันทึกอุปกรณ์
+<!-- ปุ่มสลับรายการกับบันทึก (Segmented Control) -->
+<div class="ios-segmented-control">
+  <button id="btnForm" class="ios-segment-btn active" onclick="switchView('form')">บันทึกอุปกรณ์</button>
+  <button id="btnList" class="ios-segment-btn" onclick="switchView('list')">รายการทั้งหมด</button>
 </div>
 
-<div class="container-fluid p-0 max-width-mobile">
+<!-- หน้าฟอร์มบันทึก -->
+<div id="formView">
+  <div class="ios-card">
+    <label class="form-label small fw-bold text-secondary">ชื่ออุปกรณ์ *</label>
+    <input id="name" class="form-control ios-input" placeholder="ระบุชื่ออุปกรณ์">
 
-  <div class="ios-segmented-control">
-    <button id="tabForm" class="ios-segment-btn active" onclick="showForm()">บันทึกอุปกรณ์</button>
-  </div>
+    <label class="form-label small fw-bold text-secondary">หมวดหมู่</label>
+    <input id="category" class="form-control ios-input" placeholder="เช่น คอมพิวเตอร์, ไฟฟ้า">
 
-  <div id="formPage">
-    <div class="ios-card">
-      <input type="hidden" id="rowIndex">
-      <input type="hidden" id="assetId">
-
-      <label class="ios-label">ชื่ออุปกรณ์ *</label>
-      <input id="name" class="form-control ios-input" placeholder="ระบุชื่ออุปกรณ์">
-
-      <label class="ios-label">หมวดหมู่</label>
-      <input id="category" class="form-control ios-input" placeholder="เช่น คอมพิวเตอร์, ไฟฟ้า">
-
-      <div class="row g-2">
-        <div class="col-6">
-          <label class="ios-label">ยี่ห้อ</label>
-          <input id="brand" class="form-control ios-input">
-        </div>
-        <div class="col-6">
-          <label class="ios-label">รุ่น</label>
-          <input id="model" class="form-control ios-input">
-        </div>
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label small fw-bold text-secondary">ยี่ห้อ</label>
+        <input id="brand" class="form-control ios-input">
       </div>
-
-      <label class="ios-label">Serial No</label>
-      <input id="serialNo" class="form-control ios-input">
-
-      <div class="row g-2">
-        <div class="col-6">
-          <label class="ios-label">จำนวน</label>
-          <input id="quantity" type="number" value="1" class="form-control ios-input">
-        </div>
-        <div class="col-6">
-          <label class="ios-label">หน่วย</label>
-          <input id="unit" class="form-control ios-input" placeholder="เครื่อง/ตัว">
-        </div>
+      <div class="col-6">
+        <label class="form-label small fw-bold text-secondary">รุ่น</label>
+        <input id="model" class="form-control ios-input">
       </div>
-
-      <label class="ios-label">สถานที่</label>
-      <input id="location" class="form-control ios-input" placeholder="ห้อง/แผนก">
-
-      <label class="ios-label">สถานะ</label>
-      <select id="status" class="form-select ios-input">
-        <option value="ใช้งานปกติ">ใช้งานปกติ</option>
-        <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
-        <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
-        <option value="ไม่ได้ใช้งาน">ไม่ได้ใช้งาน</option>
-      </select>
-
-      <label class="ios-label">ผู้บันทึก</label>
-      <input id="recordedBy" class="form-control ios-input" readonly placeholder="กำลังดึงชื่อ LINE...">
-
-      <label class="ios-label">รูปภาพอุปกรณ์</label>
-      
-      <label class="ios-upload-btn">
-        <i class="bi bi-camera-fill fs-5"></i> ถ่ายรูป / เลือกรูปภาพ
-        <input type="file" id="imageInput" accept="image/*" capture="environment" multiple style="display:none;" onchange="previewImage(this)">
-      </label>
-
-      <div id="gallery" class="gallery-grid"></div>
     </div>
 
-    <button class="ios-btn-main mb-4" onclick="save()">
-      บันทึกข้อมูล
-    </button>
+    <label class="form-label small fw-bold text-secondary">Serial No</label>
+    <input id="serialNo" class="form-control ios-input">
+
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label small fw-bold text-secondary">จำนวน</label>
+        <input id="quantity" type="number" value="1" class="form-control ios-input">
+      </div>
+      <div class="col-6">
+        <label class="form-label small fw-bold text-secondary">หน่วย</label>
+        <input id="unit" class="form-control ios-input" placeholder="เครื่อง/ตัว">
+      </div>
+    </div>
+
+    <label class="form-label small fw-bold text-secondary">สถานที่</label>
+    <input id="location" class="form-control ios-input">
+
+    <label class="form-label small fw-bold text-secondary">สถานะ</label>
+    <select id="status" class="form-select ios-input">
+      <option value="ใช้งานปกติ">ใช้งานปกติ</option>
+      <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
+      <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
+      <option value="ไม่ได้ใช้งาน">ไม่ได้ใช้งาน</option>
+    </select>
   </div>
 
+  <button class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
+</div>
+
+<!-- หน้าแสดงรายการ -->
+<div id="listView" style="display:none;">
+  <div id="listContainer"></div>
 </div>
 
 <script>
-// Web App URL จาก Apps Script
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxuPjv_BvzgEP46orISTWzrcR9A59e774GvR_ng6tho4GNTO8w2sq7paBkBHV5F1yIF/exec";
-const LIFF_ID = "2010924055-ptu13GAx";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx1ic3mtGPevamrdaqvVHUm45Dd6attuAH8M3LLQ2AmNnYbjxHWNjH1D-ByQd3ys2ue/exec";
 
-let images = [];
-let oldImages = [];
-
-window.onload = function(){
-  initLiff();
-};
-
-function initLiff(){
-  if(typeof liff !== "undefined" && LIFF_ID){
-    liff.init({liffId: LIFF_ID, withLoginOnExternalBrowser: true})
-    .then(()=>{
-      if(liff.isLoggedIn()){
-        liff.getProfile().then(p=>{
-          document.getElementById("recordedBy").value = p.displayName;
-        });
-      }else{
-        liff.login();
-      }
-    }).catch(err => console.log("LIFF Init Error:", err));
+function switchView(view) {
+  if (view === 'form') {
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('btnForm').className = 'ios-segment-btn active';
+    document.getElementById('btnList').className = 'ios-segment-btn';
+  } else {
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('listView').style.display = 'block';
+    document.getElementById('btnForm').className = 'ios-segment-btn';
+    document.getElementById('btnList').className = 'ios-segment-btn active';
+    loadData();
   }
 }
 
-function previewImage(input){
-  if (!input.files || input.files.length === 0) return;
-  
-  Array.from(input.files).forEach(file => {
-    let reader = new FileReader();
-    reader.onload = e => {
-      images.push({
-        base64: e.target.result,
-        name: file.name,
-        type: file.type
-      });
-      renderGallery();
-    };
-    reader.readAsDataURL(file);
-  });
-  input.value = "";
-}
-
-function renderGallery(){
-  let box = document.getElementById("gallery");
-  box.innerHTML = "";
-
-  images.forEach((img, i) => {
-    box.innerHTML += `
-      <div class="gallery-item">
-        <img src="${img.base64}">
-        <button class="btn-del" onclick="removeImage(${i})">×</button>
-      </div>
-    `;
-  });
-}
-
-function removeImage(i){
-  images.splice(i, 1);
-  renderGallery();
-}
-
-async function save(){
-  let nameVal = document.getElementById("name").value;
-  if(!nameVal.trim()){
-    Swal.fire({
-      icon: "warning",
-      title: "แจ้งเตือน",
-      text: "กรุณากรอกชื่ออุปกรณ์",
-      confirmButtonColor: "#007AFF"
-    });
+async function saveData() {
+  let name = document.getElementById("name").value;
+  if (!name.trim()) {
+    Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกชื่ออุปกรณ์' });
     return;
   }
 
-  Swal.fire({
-    title: "กำลังบันทึกข้อมูล",
-    text: "กำลังส่งข้อมูลและอัปโหลดรูปภาพ...",
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
+  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-  let data = {
-    rowIndex: document.getElementById("rowIndex").value,
-    assetId: document.getElementById("assetId").value,
-    name: nameVal,
+  let payload = {
+    action: "create",
+    name: name,
     category: document.getElementById("category").value,
     brand: document.getElementById("brand").value,
     model: document.getElementById("model").value,
@@ -357,48 +186,60 @@ async function save(){
     quantity: document.getElementById("quantity").value,
     unit: document.getElementById("unit").value,
     location: document.getElementById("location").value,
-    status: document.getElementById("status").value,
-    recordedBy: document.getElementById("recordedBy").value,
-    oldImages: oldImages.filter(Boolean).join(","),
-    newImages: images
+    status: document.getElementById("status").value
   };
 
   try {
-    await fetch(GAS_WEB_APP_URL, {
+    await fetch(GAS_URL, {
       method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
     });
 
-    Swal.fire({
-      icon: "success",
-      title: "สำเร็จ",
-      text: "บันทึกข้อมูลเรียบร้อยแล้ว!",
-      confirmButtonColor: "#007AFF"
-    });
-    reset();
+    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกข้อมูลเรียบร้อยแล้ว' });
+    resetForm();
+    switchView('list');
   } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "เกิดข้อผิดพลาด",
-      text: err.toString(),
-      confirmButtonColor: "#007AFF"
-    });
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
   }
 }
 
-function reset(){
-  document.querySelectorAll("#formPage input").forEach(x => {
-    if(x.type !== "hidden" && x.id !== "recordedBy") x.value = "";
-  });
+async function loadData() {
+  let box = document.getElementById("listContainer");
+  box.innerHTML = '<div class="text-center py-4 text-secondary">กำลังโหลดรายการ...</div>';
+
+  try {
+    let res = await fetch(GAS_URL + "?action=readAll");
+    let result = await res.json();
+    let data = result.data || [];
+
+    if (data.length === 0) {
+      box.innerHTML = '<div class="text-center py-4 text-secondary">ไม่มีรายการอุปกรณ์</div>';
+      return;
+    }
+
+    let html = "";
+    data.forEach(item => {
+      html += `
+        <div class="item-card">
+          <div class="fw-bold fs-6">${item.name}</div>
+          <div class="small text-secondary mt-1">
+            หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
+            จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span>
+          </div>
+        </div>
+      `;
+    });
+    box.innerHTML = html;
+  } catch (err) {
+    box.innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อมูลไม่สำเร็จ</div>';
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll("#formView input").forEach(i => i.value = "");
   document.getElementById("quantity").value = 1;
   document.getElementById("status").value = "ใช้งานปกติ";
-  images = [];
-  oldImages = [];
-  document.getElementById("gallery").innerHTML = "";
-  document.getElementById("rowIndex").value = "";
-  document.getElementById("assetId").value = "";
 }
 </script>
 
