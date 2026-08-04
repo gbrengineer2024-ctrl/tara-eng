@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ทดสอบ LIFF บน GitHub Pages</title>
+  <!-- โหลด LIFF SDK 2.x -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f7;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    h2 { color: #06C755; text-align: center; margin-top: 0; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    #status-log {
+      margin-top: 15px;
+      padding: 10px;
+      background: #1e1e1e;
+      color: #00ff66;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>ทดสอบดึงชื่อ LINE (GitHub Pages)</h2>
+    
+    <div class="form-group">
+      <label for="recordedBy">ผู้บันทึก (Display Name):</label>
+      <input type="text" id="recordedBy" placeholder="กำลังดึงข้อมูล..." readonly>
+    </div>
+
+    <label>สถานะการทำงาน (Log):</label>
+    <div id="status-log">กำลังเริ่มต้นระบบ...</div>
+  </div>
+
+  <script>
+    function writeLog(msg) {
+      const logDiv = document.getElementById("status-log");
+      logDiv.innerHTML += "\n> " + msg;
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(msg);
+    }
+
+    async function getUserProfile() {
+      try {
+        writeLog("กำลังดึงข้อมูล Profile...");
+        const profile = await liff.getProfile();
+        if (profile && profile.displayName) {
+          document.getElementById("recordedBy").value = profile.displayName;
+          writeLog("สำเร็จ! ชื่อ LINE: " + profile.displayName);
+        }
+      } catch (err) {
+        writeLog("ERROR (getProfile): " + err.message);
+      }
+    }
+
+    async function main() {
+      // LIFF ID ของคุณ
+      const liffId = "2010924055-ptu13GAx";
+      
+      try {
+        writeLog("กำลังเชื่อมต่อ LIFF...");
+        await liff.init({ 
+          liffId: liffId,
+          withLoginOnExternalBrowser: true 
+        });
+
+        writeLog("LIFF Init สำเร็จ!");
+
+        if (liff.isLoggedIn()) {
+          writeLog("สถานะ: ล็อกอินแล้ว");
+          await getUserProfile();
+        } else {
+          writeLog("สถานะ: ยังไม่ได้ล็อกอิน กำลังเปิดหน้าล็อกอิน...");
+          liff.login();
+        }
+      } catch (err) {
+        writeLog("ERROR (init): " + err.message);
+      }
+    }
+
+    window.onload = main;
+  </script>
+
+</body>
+</html>
