@@ -188,7 +188,7 @@
     <div id="imagePreview" class="img-preview-container"></div>
   </div>
 
-  <button class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
+  <button id="btnSubmit" class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
 </div>
 
 <!-- หน้าแสดงรายการทั้งหมด -->
@@ -197,11 +197,12 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycby5UmYCrFSdiRwstYT17ibQmlRVd6wNzvZsStTVv4lHzMQX0iUueH3UjiPamlPPZ9Mw/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwesshFUpc-DEbXr7avJcRlLnkVycSC9je-_DzT7eGpQYpgGLI4ll0N85dlEnmYDqLB/exec";
 const LIFF_ID = "2010924055-ptu13GAx"; // หากมี LIFF ID ให้ใส่ตรงนี้ (ถ้าไม่มีก็เว้นไว้ พิมพ์ชื่อเองได้)
 
 let images = [];
 let oldImages = [];
+let allData = []; // เก็บข้อมูลรายการทั้งหมดสำหรับแก้ไขและลบ
 
 window.onload = function() {
   initLiff();
@@ -344,21 +345,27 @@ async function loadData() {
   try {
     let res = await fetch(GAS_URL + "?action=readAll");
     let result = await res.json();
-    let data = result.data || [];
+    allData = result.data || [];
 
-    if (data.length === 0) {
+    if (allData.length === 0) {
       box.innerHTML = '<div class="text-center py-4 text-secondary">ไม่มีรายการอุปกรณ์</div>';
       return;
     }
 
     let html = "";
-    data.forEach(item => {
+    allData.forEach((item, index) => {
       html += `
         <div class="item-card">
-          <div class="fw-bold fs-6">${item.name} (${item.assetId || '-'})</div>
-          <div class="small text-secondary mt-1">
-            หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
-            จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span><br>
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="fw-bold fs-6">${item.name} (${item.assetId || '-'})</div>
+            <div>
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="editItem(${index})"><i class="bi bi-pencil"></i> แก้ไข</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${item.rowIndex}')"><i class="bi bi-trash"></i> ลบ</button>
+            </div>
+          </div>
+          <div class="small text-secondary mt-2">
+            สถานที่: ${item.location || '-'}<br>
+            สถานะ: <span class="badge bg-primary">${item.status}</span><br>
             ผู้บันทึก: ${item.recordedBy || '-'}
           </div>
         </div>
@@ -367,6 +374,62 @@ async function loadData() {
     box.innerHTML = html;
   } catch (err) {
     box.innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อมูลไม่สำเร็จ</div>';
+  }
+}
+
+function editItem(index) {
+  let item = allData[index];
+  if (!item) return;
+
+  document.getElementById("rowIndex").value = item.rowIndex;
+  document.getElementById("assetId").value = item.assetId;
+  document.getElementById("name").value = item.name;
+  document.getElementById("category").value = item.category;
+  document.getElementById("brand").value = item.brand;
+  document.getElementById("model").value = item.model;
+  document.getElementById("serialNo").value = item.serialNo;
+  document.getElementById("quantity").value = item.quantity;
+  document.getElementById("unit").value = item.unit;
+  document.getElementById("location").value = item.location;
+  document.getElementById("status").value = item.status;
+  document.getElementById("recordedBy").value = item.recordedBy;
+
+  // โหลดรูปภาพเดิม
+  images = [];
+  oldImages = item.images ? item.images.split(",").filter(Boolean) : [];
+  renderPreview();
+
+  document.getElementById("btnSubmit").innerText = "อัปเดตข้อมูล";
+  switchView('form');
+}
+
+async function deleteItem(rowIndex) {
+  let confirm = await Swal.fire({
+    title: 'ยืนยันการลบ?',
+    text: "คุณต้องการลบรายการนี้ใช่หรือไม่",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'ลบรายการ',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "delete", rowIndex: rowIndex })
+    });
+
+    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบรายการเรียบร้อยแล้ว' });
+    loadData();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
   }
 }
 
@@ -380,6 +443,7 @@ function resetForm() {
   document.getElementById("rowIndex").value = "";
   document.getElementById("assetId").value = "";
   document.getElementById("recordedBy").value = currentRecorder;
+  document.getElementById("btnSubmit").innerText = "บันทึกข้อมูล";
   images = [];
   oldImages = [];
   document.getElementById("imagePreview").innerHTML = "";
