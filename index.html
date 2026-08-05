@@ -66,6 +66,10 @@
     margin-bottom: 12px;
     font-size: 15px !important;
   }
+  .ios-input:read-only {
+    background: #E5E5EA !important;
+    color: #000000;
+  }
   .ios-btn-main {
     background: #007AFF;
     color: white;
@@ -181,7 +185,7 @@
     </select>
 
     <label class="form-label small fw-bold text-secondary">ผู้บันทึก</label>
-    <input id="recordedBy" class="form-control ios-input" placeholder="ระบุชื่อผู้บันทึก">
+    <input id="recordedBy" class="form-control ios-input" placeholder="กำลังโหลดชื่อผู้ใช้ LINE...">
 
     <label class="form-label small fw-bold text-secondary">รูปภาพอุปกรณ์ (เลือกเพิ่มได้หลายรูป)</label>
     <input type="file" id="imageInput" class="form-control ios-input" accept="image/*" multiple onchange="handleImageUpload(event)">
@@ -197,28 +201,37 @@
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwesshFUpc-DEbXr7avJcRlLnkVycSC9je-_DzT7eGpQYpgGLI4ll0N85dlEnmYDqLB/exec";
-const LIFF_ID = "2010924055-ptu13GAx"; // หากมี LIFF ID ให้ใส่ตรงนี้ (ถ้าไม่มีก็เว้นไว้ พิมพ์ชื่อเองได้)
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwessHFUpc-DEbXr7avJCR1LnkVycSC9je-_DzT7eGpQYpgGLI411oN85d1EnmYDqLB/exec";
+const LIFF_ID = "2010924055-ptu13GAx";
 
 let images = [];
 let oldImages = [];
-let allData = []; // เก็บข้อมูลรายการทั้งหมดสำหรับแก้ไขและลบ
+let allData = [];
+let lineUserName = "";
 
 window.onload = function() {
   initLiff();
 };
 
 async function initLiff() {
+  const recordedInput = document.getElementById("recordedBy");
   try {
-    if (LIFF_ID && LIFF_ID !== "2010924055-ptu13GAx") {
+    if (LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
       await liff.init({ liffId: LIFF_ID });
       if (liff.isLoggedIn()) {
         const profile = await liff.getProfile();
-        document.getElementById("recordedBy").value = profile.displayName;
+        lineUserName = profile.displayName;
+        recordedInput.value = lineUserName;
+        recordedInput.readOnly = true;
+      } else {
+        liff.login();
       }
+    } else {
+      recordedInput.placeholder = "ระบุชื่อผู้บันทึก";
     }
   } catch (err) {
     console.log("LIFF Init Exception:", err);
+    recordedInput.placeholder = "ระบุชื่อผู้บันทึก";
   }
 }
 
@@ -237,7 +250,6 @@ function switchView(view) {
   }
 }
 
-// อัปโหลดและสะสมรูปภาพหลายรูป (ไม่เขียนทับรูปเดิม)
 function handleImageUpload(event) {
   let files = event.target.files;
   if (!files || files.length === 0) return;
@@ -251,7 +263,7 @@ function handleImageUpload(event) {
       loadedCount++;
       if (loadedCount === files.length) {
         renderPreview();
-        document.getElementById("imageInput").value = ""; // ล้างค่า input เพื่อให้เลือกรูปเพิ่มได้เรื่อยๆ
+        document.getElementById("imageInput").value = "";
       }
     };
     reader.readAsDataURL(file);
@@ -297,8 +309,15 @@ function renderPreview() {
 
 async function saveData() {
   let name = document.getElementById("name").value;
+  let recordedBy = document.getElementById("recordedBy").value;
+
   if (!name.trim()) {
     Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกชื่ออุปกรณ์' });
+    return;
+  }
+
+  if (!recordedBy.trim()) {
+    Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณาระบุชื่อผู้บันทึก' });
     return;
   }
 
@@ -318,7 +337,7 @@ async function saveData() {
     unit: document.getElementById("unit").value,
     location: document.getElementById("location").value,
     status: document.getElementById("status").value,
-    recordedBy: document.getElementById("recordedBy").value,
+    recordedBy: recordedBy,
     oldImages: oldImages.filter(Boolean).join(","),
     newImages: JSON.stringify(images)
   };
@@ -356,17 +375,27 @@ async function loadData() {
     allData.forEach((item, index) => {
       html += `
         <div class="item-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="fw-bold fs-6">${item.name} (${item.assetId || '-'})</div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <button class="btn btn-sm btn-outline-primary me-1" onclick="editItem(${index})"><i class="bi bi-pencil"></i> แก้ไข</button>
-              <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${item.rowIndex}')"><i class="bi bi-trash"></i> ลบ</button>
+              <span class="badge" style="background: #E5E5EA; color: #8E8E93; font-weight: 500; font-size: 11px;">Asset ID: ${item.assetId || '-'}</span>
+              <div class="fw-bold fs-6 text-dark mt-1">${item.name}</div>
+            </div>
+            
+            <!-- ปุ่ม Action สไตล์ iOS (เรียบหรู ไม่รก) -->
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm text-primary p-1 border-0" onclick="editItem(${index})" title="แก้ไข">
+                <i class="bi bi-pencil-square fs-5"></i>
+              </button>
+              <button class="btn btn-sm text-danger p-1 border-0" onclick="deleteItem('${item.rowIndex}')" title="ลบ">
+                <i class="bi bi-trash3 fs-5"></i>
+              </button>
             </div>
           </div>
-          <div class="small text-secondary mt-2">
-            สถานที่: ${item.location || '-'}<br>
-            สถานะ: <span class="badge bg-primary">${item.status}</span><br>
-            ผู้บันทึก: ${item.recordedBy || '-'}
+
+          <div class="small text-secondary mt-2 pt-2 border-top">
+            <div><span class="text-muted">สถานที่:</span> <span class="text-dark">${item.location || '-'}</span></div>
+            <div><span class="text-muted">สถานะ:</span> <span class="badge rounded-pill bg-primary fw-normal">${item.status}</span></div>
+            <div><span class="text-muted">ผู้บันทึก:</span> <span class="text-dark">${item.recordedBy || '-'}</span></div>
           </div>
         </div>
       `;
@@ -392,9 +421,13 @@ function editItem(index) {
   document.getElementById("unit").value = item.unit;
   document.getElementById("location").value = item.location;
   document.getElementById("status").value = item.status;
-  document.getElementById("recordedBy").value = item.recordedBy;
+  
+  if (lineUserName) {
+    document.getElementById("recordedBy").value = lineUserName;
+  } else {
+    document.getElementById("recordedBy").value = item.recordedBy || "";
+  }
 
-  // โหลดรูปภาพเดิม
   images = [];
   oldImages = item.images ? item.images.split(",").filter(Boolean) : [];
   renderPreview();
@@ -434,7 +467,6 @@ async function deleteItem(rowIndex) {
 }
 
 function resetForm() {
-  let currentRecorder = document.getElementById("recordedBy").value;
   document.querySelectorAll("#formView input").forEach(i => {
     if(i.type !== 'hidden' && i.type !== 'file') i.value = "";
   });
@@ -442,7 +474,11 @@ function resetForm() {
   document.getElementById("status").value = "ใช้งานปกติ";
   document.getElementById("rowIndex").value = "";
   document.getElementById("assetId").value = "";
-  document.getElementById("recordedBy").value = currentRecorder;
+  
+  if (lineUserName) {
+    document.getElementById("recordedBy").value = lineUserName;
+  }
+
   document.getElementById("btnSubmit").innerText = "บันทึกข้อมูล";
   images = [];
   oldImages = [];
