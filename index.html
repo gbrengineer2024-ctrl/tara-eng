@@ -111,20 +111,20 @@
       display:block; width:100%; border:none; border-radius:12px; padding:14px;
       font-size:16px; font-weight:600; text-align:center;
     }
-    .ios-btn-primary{ background:var(--ios-blue); color:#fff; }
+    .ios-btn-primary{ background:#1C1C1E; color:#fff; }
     .ios-btn-primary:active{ opacity:0.75; }
-    .ios-btn-secondary{ background:var(--ios-card); color:var(--ios-blue); border:0.5px solid var(--ios-sep); }
-    .ios-btn-secondary:active{ background:#EDEDED; }
+    .ios-btn-secondary{ background:var(--ios-card); color:var(--ios-text); border:1px solid #333; }
+    .ios-btn-secondary:active{ background:#F0F0F0; }
     .btn-row{ display:flex; gap:10px; margin-top:16px; }
     .btn-row .ios-btn{ flex:1; }
 
     .ios-chip-btn{
       display:inline-flex; align-items:center; gap:6px;
-      background:var(--ios-card); border:0.5px solid var(--ios-sep);
-      border-radius:10px; padding:9px 14px; font-size:14px; font-weight:500;
-      color:var(--ios-blue); margin:0 8px 8px 0;
+      background:var(--ios-card); border:1px solid #333;
+      border-radius:8px; padding:8px 14px; font-size:14px; font-weight:500;
+      color:var(--ios-text); margin:0 8px 8px 0;
     }
-    .ios-chip-btn:active{ background:#EDEDED; }
+    .ios-chip-btn:active{ background:#F0F0F0; }
 
     /* image preview */
     .img-wrapper{ position:relative; display:inline-block; margin:0 8px 8px 0; }
@@ -173,11 +173,11 @@
     .eq-loc{ font-size:12px; color:var(--ios-label); }
     .eq-actions{ display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
     .icon-btn{
-      width:32px; height:32px; border-radius:50%; border:none;
+      width:32px; height:32px; border-radius:8px;
+      background:var(--ios-card); border:1px solid #333; color:var(--ios-text);
       display:flex; align-items:center; justify-content:center; font-size:14px;
     }
-    .icon-btn-edit{ background:#E8F1FF; color:var(--ios-blue); }
-    .icon-btn-del{ background:#FFE9E8; color:var(--ios-red); }
+    .icon-btn:active{ background:#F0F0F0; }
 
     .empty-state{
       text-align:center; padding:48px 16px; color:var(--ios-label);
