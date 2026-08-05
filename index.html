@@ -10,14 +10,22 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- LINE LIFF SDK -->
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
   body {
     background-color: #F2F2F7;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Sarabun", sans-serif;
-    padding: 12px 0 30px 0;
+    padding-bottom: 40px;
   }
-
+  .app-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin: 16px 0 12px 0;
+  }
   .ios-segmented-control {
     background: #E3E3E9;
     border-radius: 10px;
@@ -26,7 +34,6 @@
     margin: 0 16px 16px 16px;
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
   }
-
   .ios-segment-btn {
     flex: 1;
     border: none;
@@ -38,14 +45,12 @@
     color: #636366;
     transition: all 0.2s ease;
   }
-
   .ios-segment-btn.active {
     background: #FFFFFF;
     color: #000000;
     box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.12), 0px 3px 1px rgba(0, 0, 0, 0.04);
     font-weight: 600;
   }
-
   .ios-card {
     background: #FFFFFF;
     border-radius: 14px;
@@ -53,7 +58,6 @@
     margin: 0 16px 16px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-
   .ios-input {
     background: #EFEFF4 !important;
     border: none !important;
@@ -62,7 +66,6 @@
     margin-bottom: 12px;
     font-size: 15px !important;
   }
-
   .ios-btn-main {
     background: #007AFF;
     color: white;
@@ -75,40 +78,65 @@
     margin: 0 16px;
     box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
   }
-
   .item-card {
     background: white;
     border-radius: 12px;
     padding: 14px;
     margin: 0 16px 10px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
-
-  .img-preview {
+  .img-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+  .img-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .img-thumb {
     width: 70px;
     height: 70px;
     object-fit: cover;
     border-radius: 8px;
     border: 1px solid #ddd;
   }
+  .btn-del-img {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #FF3B30;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 18px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
 </style>
 </head>
 
 <body>
 
-<!-- ปุ่มสลับรายการกับบันทึก -->
+<div class="app-title">ระบบบันทึกอุปกรณ์</div>
+
+<!-- ปุ่มสลับแท็บ (Segmented Control) -->
 <div class="ios-segmented-control">
   <button id="btnForm" class="ios-segment-btn active" onclick="switchView('form')">บันทึกอุปกรณ์</button>
   <button id="btnList" class="ios-segment-btn" onclick="switchView('list')">รายการทั้งหมด</button>
 </div>
 
-<!-- หน้าฟอร์มบันทึก -->
+<!-- หน้าฟอร์มบันทึกอุปกรณ์ -->
 <div id="formView">
   <div class="ios-card">
     <input type="hidden" id="rowIndex">
+    <input type="hidden" id="assetId">
 
     <label class="form-label small fw-bold text-secondary">ชื่ออุปกรณ์ *</label>
     <input id="name" class="form-control ios-input" placeholder="ระบุชื่ออุปกรณ์">
@@ -152,45 +180,45 @@
       <option value="ชำรุด/ไม่ได้ใช้งาน">ชำรุด/ไม่ได้ใช้งาน</option>
     </select>
 
-    <!-- แนบรูปภาพ / ถ่ายรูป -->
-    <label class="form-label small fw-bold text-secondary mt-2">รูปภาพอุปกรณ์</label>
-    <input type="file" id="imageInput" class="form-control ios-input" accept="image/*" capture="environment" onchange="previewImage(event)">
-    <div id="imagePreviewBox" class="mt-2 text-center" style="display:none;">
-      <img id="imgPreview" class="img-preview mb-2"><br>
-      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">ลบรูปภาพ</button>
-    </div>
+    <label class="form-label small fw-bold text-secondary">ผู้บันทึก</label>
+    <input id="recordedBy" class="form-control ios-input" placeholder="ระบุชื่อผู้บันทึก">
+
+    <label class="form-label small fw-bold text-secondary">รูปภาพอุปกรณ์ (เลือกเพิ่มได้หลายรูป)</label>
+    <input type="file" id="imageInput" class="form-control ios-input" accept="image/*" multiple onchange="handleImageUpload(event)">
+    <div id="imagePreview" class="img-preview-container"></div>
   </div>
 
-  <button class="ios-btn-main" id="btnSubmit" onclick="saveData()">บันทึกข้อมูล</button>
+  <button class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
 </div>
 
-<!-- หน้าแสดงรายการ -->
+<!-- หน้าแสดงรายการทั้งหมด -->
 <div id="listView" style="display:none;">
   <div id="listContainer"></div>
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx4HiGtW3JR2Q1HPzDCdY2h4QcbUipppdzVQzviuQJ5CDgfI3mYcMNtYrO4EuqYWqTZ/exec";
-let globalData = [];
-let base64Image = "";
+const GAS_URL = "https://script.google.com/macros/s/AKfycby5UmYCrFSdiRwstYT17ibQmlRVd6wNzvZsStTVv4lHzMQX0iUueH3UjiPamlPPZ9Mw/exec";
+const LIFF_ID = "2010924055-ptu13GAx"; // หากมี LIFF ID ให้ใส่ตรงนี้ (ถ้าไม่มีก็เว้นไว้ พิมพ์ชื่อเองได้)
 
-function previewImage(event) {
-  let file = event.target.files[0];
-  if (file) {
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      base64Image = e.target.result;
-      document.getElementById("imgPreview").src = base64Image;
-      document.getElementById("imagePreviewBox").style.display = "block";
-    };
-    reader.readAsDataURL(file);
+let images = [];
+let oldImages = [];
+
+window.onload = function() {
+  initLiff();
+};
+
+async function initLiff() {
+  try {
+    if (LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        document.getElementById("recordedBy").value = profile.displayName;
+      }
+    }
+  } catch (err) {
+    console.log("LIFF Init Exception:", err);
   }
-}
-
-function removeImage() {
-  base64Image = "";
-  document.getElementById("imageInput").value = "";
-  document.getElementById("imagePreviewBox").style.display = "none";
 }
 
 function switchView(view) {
@@ -208,6 +236,64 @@ function switchView(view) {
   }
 }
 
+// อัปโหลดและสะสมรูปภาพหลายรูป (ไม่เขียนทับรูปเดิม)
+function handleImageUpload(event) {
+  let files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  let loadedCount = 0;
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      images.push({ base64: e.target.result, type: file.type, name: file.name });
+      loadedCount++;
+      if (loadedCount === files.length) {
+        renderPreview();
+        document.getElementById("imageInput").value = ""; // ล้างค่า input เพื่อให้เลือกรูปเพิ่มได้เรื่อยๆ
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeNewImage(index) {
+  images.splice(index, 1);
+  renderPreview();
+}
+
+function removeOldImage(index) {
+  oldImages.splice(index, 1);
+  renderPreview();
+}
+
+function renderPreview() {
+  let container = document.getElementById("imagePreview");
+  let html = "";
+  
+  oldImages.forEach((url, idx) => {
+    if (url) {
+      html += `
+        <div class="img-wrapper">
+          <img src="${url}" class="img-thumb">
+          <span class="btn-del-img" onclick="removeOldImage(${idx})">×</span>
+        </div>
+      `;
+    }
+  });
+
+  images.forEach((img, idx) => {
+    html += `
+      <div class="img-wrapper">
+        <img src="${img.base64}" class="img-thumb">
+        <span class="btn-del-img" onclick="removeNewImage(${idx})">×</span>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
 async function saveData() {
   let name = document.getElementById("name").value;
   if (!name.trim()) {
@@ -221,6 +307,7 @@ async function saveData() {
   let payload = {
     action: rowIdx ? "update" : "create",
     rowIndex: rowIdx,
+    assetId: document.getElementById("assetId").value,
     name: name,
     category: document.getElementById("category").value,
     brand: document.getElementById("brand").value,
@@ -230,7 +317,9 @@ async function saveData() {
     unit: document.getElementById("unit").value,
     location: document.getElementById("location").value,
     status: document.getElementById("status").value,
-    image: base64Image
+    recordedBy: document.getElementById("recordedBy").value,
+    oldImages: oldImages.filter(Boolean).join(","),
+    newImages: JSON.stringify(images)
   };
 
   try {
@@ -255,31 +344,22 @@ async function loadData() {
   try {
     let res = await fetch(GAS_URL + "?action=readAll");
     let result = await res.json();
-    globalData = result.data || [];
+    let data = result.data || [];
 
-    if (globalData.length === 0) {
+    if (data.length === 0) {
       box.innerHTML = '<div class="text-center py-4 text-secondary">ไม่มีรายการอุปกรณ์</div>';
       return;
     }
 
     let html = "";
-    globalData.forEach(item => {
+    data.forEach(item => {
       html += `
         <div class="item-card">
-          <div>
-            <div class="fw-bold fs-6">${item.name}</div>
-            <div class="small text-secondary mt-1">
-              หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
-              จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span>
-            </div>
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-primary" onclick="editData(${item.rowIndex})">
-              <i class="bi bi-pencil-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteData(${item.rowIndex})">
-              <i class="bi bi-trash-fill"></i>
-            </button>
+          <div class="fw-bold fs-6">${item.name} (${item.assetId || '-'})</div>
+          <div class="small text-secondary mt-1">
+            หมวดหมู่: ${item.category || '-'} | สถานที่: ${item.location || '-'}<br>
+            จำนวน: ${item.quantity} ${item.unit} | สถานะ: <span class="badge bg-primary">${item.status}</span><br>
+            ผู้บันทึก: ${item.recordedBy || '-'}
           </div>
         </div>
       `;
@@ -290,59 +370,20 @@ async function loadData() {
   }
 }
 
-function editData(rowIndex) {
-  let item = globalData.find(x => x.rowIndex == rowIndex);
-  if (!item) return;
-
-  document.getElementById("rowIndex").value = item.rowIndex;
-  document.getElementById("name").value = item.name || "";
-  document.getElementById("category").value = item.category || "";
-  document.getElementById("brand").value = item.brand || "";
-  document.getElementById("model").value = item.model || "";
-  document.getElementById("serialNo").value = item.serialNo || "";
-  document.getElementById("quantity").value = item.quantity || 1;
-  document.getElementById("unit").value = item.unit || "";
-  document.getElementById("location").value = item.location || "";
-  document.getElementById("status").value = item.status || "ใช้งานปกติ";
-
-  document.getElementById("btnSubmit").innerText = "อัปเดตข้อมูล";
-  switchView('form');
-}
-
-async function deleteData(rowIndex) {
-  let confirm = await Swal.fire({
-    title: 'ยืนยันการลบ?',
-    text: "คุณต้องการลบรายการนี้ใช่หรือไม่",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    confirmButtonText: 'ลบรายการ',
-    cancelButtonText: 'ยกเลิก'
-  });
-
-  if (confirm.isConfirmed) {
-    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-    try {
-      await fetch(GAS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "delete", rowIndex: rowIndex })
-      });
-      Swal.fire({ icon: 'success', title: 'ลบสำเร็จ' });
-      loadData();
-    } catch (err) {
-      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
-    }
-  }
-}
-
 function resetForm() {
-  document.getElementById("rowIndex").value = "";
-  document.querySelectorAll("#formView input").forEach(i => i.value = "");
+  let currentRecorder = document.getElementById("recordedBy").value;
+  document.querySelectorAll("#formView input").forEach(i => {
+    if(i.type !== 'hidden' && i.type !== 'file') i.value = "";
+  });
   document.getElementById("quantity").value = 1;
   document.getElementById("status").value = "ใช้งานปกติ";
-  document.getElementById("btnSubmit").innerText = "บันทึกข้อมูล";
-  removeImage();
+  document.getElementById("rowIndex").value = "";
+  document.getElementById("assetId").value = "";
+  document.getElementById("recordedBy").value = currentRecorder;
+  images = [];
+  oldImages = [];
+  document.getElementById("imagePreview").innerHTML = "";
+  document.getElementById("imageInput").value = "";
 }
 </script>
 
