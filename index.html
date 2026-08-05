@@ -338,7 +338,7 @@ async function saveData() {
     location: document.getElementById("location").value,
     status: document.getElementById("status").value,
     recordedBy: recordedBy,
-    oldImages: oldImages.filter(Boolean).join(","),
+    OldImages: oldImages.filter(Boolean).join(","),  // <-- ตรงนี้
     newImages: JSON.stringify(images)
   };
 
