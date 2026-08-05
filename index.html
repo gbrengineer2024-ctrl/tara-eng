@@ -1,491 +1,477 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ระบบบันทึกอุปกรณ์</title>
-
-<!-- Framework & Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- LINE LIFF SDK -->
-<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-<style>
-  body {
-    background-color: #F2F2F7;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Sarabun", sans-serif;
-    padding-bottom: 40px;
-  }
-  .app-title {
-    text-align: center;
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin: 16px 0 12px 0;
-  }
-  .ios-segmented-control {
-    background: #E3E3E9;
-    border-radius: 10px;
-    padding: 3px;
-    display: flex;
-    margin: 0 16px 16px 16px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
-  }
-  .ios-segment-btn {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 8px 0;
-    font-size: 15px;
-    font-weight: 500;
-    border-radius: 8px;
-    color: #636366;
-    transition: all 0.2s ease;
-  }
-  .ios-segment-btn.active {
-    background: #FFFFFF;
-    color: #000000;
-    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.12), 0px 3px 1px rgba(0, 0, 0, 0.04);
-    font-weight: 600;
-  }
-  .ios-card {
-    background: #FFFFFF;
-    border-radius: 14px;
-    padding: 16px;
-    margin: 0 16px 16px 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .ios-input {
-    background: #EFEFF4 !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
-    margin-bottom: 12px;
-    font-size: 15px !important;
-  }
-  .ios-input:read-only {
-    background: #E5E5EA !important;
-    color: #000000;
-  }
-  .ios-btn-main {
-    background: #007AFF;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 600;
-    width: calc(100% - 32px);
-    margin: 0 16px;
-    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
-  }
-  .item-card {
-    background: white;
-    border-radius: 12px;
-    padding: 14px;
-    margin: 0 16px 10px 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .img-preview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
-    margin-bottom: 12px;
-  }
-  .img-wrapper {
-    position: relative;
-    display: inline-block;
-  }
-  .img-thumb {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-  }
-  .btn-del-img {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #FF3B30;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    text-align: center;
-    line-height: 18px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
-</style>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ระบบบันทึกอุปกรณ์</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-bottom: 30px;
+    }
+    /* ป้องกัน iOS Zoom เมื่อแตะช่องกรอกข้อมูล */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+    /* ปรับปุ่มให้ตอบสนองบน iOS ทันที */
+    button, .btn {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: none;
+    }
+    .img-wrapper {
+      position: relative;
+      display: inline-block;
+      margin: 5px;
+    }
+    .img-thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .btn-del-img {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #dc3545;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+    }
+    .table-img {
+      width: 45px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-right: 4px;
+      cursor: pointer;
+    }
+    .btn-action-group {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="app-title">ระบบบันทึกอุปกรณ์</div>
-
-<!-- ปุ่มสลับแท็บ (Segmented Control) -->
-<div class="ios-segmented-control">
-  <button id="btnForm" class="ios-segment-btn active" onclick="switchView('form')">บันทึกอุปกรณ์</button>
-  <button id="btnList" class="ios-segment-btn" onclick="switchView('list')">รายการทั้งหมด</button>
-</div>
-
-<!-- หน้าฟอร์มบันทึกอุปกรณ์ -->
-<div id="formView">
-  <div class="ios-card">
-    <input type="hidden" id="rowIndex">
-    <input type="hidden" id="assetId">
-
-    <label class="form-label small fw-bold text-secondary">ชื่ออุปกรณ์ *</label>
-    <input id="name" class="form-control ios-input" placeholder="ระบุชื่ออุปกรณ์">
-
-    <label class="form-label small fw-bold text-secondary">หมวดหมู่</label>
-    <input id="category" class="form-control ios-input" placeholder="เช่น คอมพิวเตอร์, ไฟฟ้า">
-
-    <div class="row g-2">
-      <div class="col-6">
-        <label class="form-label small fw-bold text-secondary">ยี่ห้อ</label>
-        <input id="brand" class="form-control ios-input">
-      </div>
-      <div class="col-6">
-        <label class="form-label small fw-bold text-secondary">รุ่น</label>
-        <input id="model" class="form-control ios-input">
-      </div>
-    </div>
-
-    <label class="form-label small fw-bold text-secondary">Serial No</label>
-    <input id="serialNo" class="form-control ios-input">
-
-    <div class="row g-2">
-      <div class="col-6">
-        <label class="form-label small fw-bold text-secondary">จำนวน</label>
-        <input id="quantity" type="number" value="1" class="form-control ios-input">
-      </div>
-      <div class="col-6">
-        <label class="form-label small fw-bold text-secondary">หน่วย</label>
-        <input id="unit" class="form-control ios-input" placeholder="เครื่อง/ตัว">
-      </div>
-    </div>
-
-    <label class="form-label small fw-bold text-secondary">สถานที่</label>
-    <input id="location" class="form-control ios-input">
-
-    <label class="form-label small fw-bold text-secondary">สถานะ</label>
-    <select id="status" class="form-select ios-input">
-      <option value="ใช้งานปกติ">ใช้งานปกติ</option>
-      <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
-      <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
-      <option value="ชำรุด/ไม่ได้ใช้งาน">ชำรุด/ไม่ได้ใช้งาน</option>
-    </select>
-
-    <label class="form-label small fw-bold text-secondary">ผู้บันทึก</label>
-    <input id="recordedBy" class="form-control ios-input" placeholder="กำลังโหลดชื่อผู้ใช้ LINE...">
-
-    <label class="form-label small fw-bold text-secondary">รูปภาพอุปกรณ์ (เลือกเพิ่มได้หลายรูป)</label>
-    <input type="file" id="imageInput" class="form-control ios-input" accept="image/*" multiple onchange="handleImageUpload(event)">
-    <div id="imagePreview" class="img-preview-container"></div>
+<div class="container mt-3">
+  <div class="card p-3 mb-3 text-center bg-primary text-white">
+    <h4 class="mb-0"><i class="fa-solid fa-boxes-stacked me-2"></i>ระบบบันทึกและจัดการอุปกรณ์</h4>
   </div>
 
-  <button id="btnSubmit" class="ios-btn-main" onclick="saveData()">บันทึกข้อมูล</button>
+  <div class="card p-3 mb-4">
+    <h5 class="card-title text-primary mb-3" id="formTitle"><i class="fa-solid fa-pen-to-square me-2"></i>บันทึกอุปกรณ์ใหม่</h5>
+    <form id="equipmentForm">
+      <input type="hidden" id="rowIndex">
+      <input type="hidden" id="assetId">
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">ชื่ออุปกรณ์ <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="name" required placeholder="ระบุชื่ออุปกรณ์">
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">หมวดหมู่</label>
+          <input type="text" class="form-control" id="category" placeholder="คอมพิวเตอร์ / เครื่องมือ">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">ยี่ห้อ</label>
+          <input type="text" class="form-control" id="brand" placeholder="ระบุยี่ห้อ">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">รุ่น</label>
+          <input type="text" class="form-control" id="model" placeholder="ระบุรุ่น">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Serial No</label>
+          <input type="text" class="form-control" id="serialNo" placeholder="Serial Number">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">จำนวน</label>
+          <input type="number" class="form-control" id="quantity" value="1" min="1">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">หน่วย</label>
+          <input type="text" class="form-control" id="unit" placeholder="เครื่อง / ชุด / ชิ้น">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">สถานที่จัดเก็บ / ใช้งาน</label>
+          <input type="text" class="form-control" id="location" placeholder="ระบุสถานที่">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">สถานะ</label>
+          <select class="form-select" id="status">
+            <option value="ใช้งานปกติ" selected>ใช้งานปกติ</option>
+            <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
+            <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
+            <option value="ชำรุด/ไม่ได้ใช้งาน">ชำรุด/ไม่ได้ใช้งาน</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">ผู้บันทึก</label>
+          <input type="text" class="form-control" id="recordedBy" placeholder="ระบุชื่อผู้บันทึก">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">รูปภาพอุปกรณ์ (ถ่ายรูปหรือเลือกไฟล์)</label>
+          <input type="file" id="imageInput" class="form-control" accept="image/*" multiple onchange="handleImageUpload(event)">
+        </div>
+
+        <div class="col-12">
+          <div id="imagePreviewContainer" class="d-flex flex-wrap mt-2"></div>
+        </div>
+
+        <div class="col-12 mt-3 text-end">
+          <button type="button" class="btn btn-secondary me-2" onclick="resetForm()">ล้างฟอร์ม</button>
+          <button type="button" class="btn btn-primary" onclick="saveData()"><i class="fa-solid fa-floppy-disk me-1"></i> บันทึกข้อมูล</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="card p-3">
+    <h5 class="card-title text-secondary mb-3"><i class="fa-solid fa-list me-2"></i>รายการอุปกรณ์ทั้งหมด</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>รูปภาพ</th>
+            <th>Asset ID</th>
+            <th>ชื่ออุปกรณ์</th>
+            <th>หมวดหมู่</th>
+            <th>ยี่ห้อ/รุ่น</th>
+            <th>จำนวน</th>
+            <th>สถานที่</th>
+            <th>สถานะ</th>
+            <th>ผู้บันทึก</th>
+            <th class="text-center">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="equipmentTableBody">
+          <tr>
+            <td colspan="10" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<!-- หน้าแสดงรายการทั้งหมด -->
-<div id="listView" style="display:none;">
-  <div id="listContainer"></div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwessHFUpc-DEbXr7avJCR1LnkVycSC9je-_DzT7eGpQYpgGLI411oN85d1EnmYDqLB/exec";
-const LIFF_ID = "2010924055-ptu13GAx";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxtjSb4N5a8Sgl8Z-eN0arQ5Zam-c3wKVadP-IIEqOWzuKrM1rhF04dePc18XxEc5yQ/exec"; // ใส่ URL Web App ล่าสุด
+  const LIFF_ID = "2010924055-ptu13GAx"; // ใส่ LIFF ID (ถ้ามี)
 
-let images = [];
-let oldImages = [];
-let allData = [];
-let lineUserName = "";
+  let images = []; 
+  let oldImages = [];
+  let userLineId = "";
 
-window.onload = function() {
-  initLiff();
-};
-
-async function initLiff() {
-  const recordedInput = document.getElementById("recordedBy");
-  try {
-    if (LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
-      await liff.init({ liffId: LIFF_ID });
-      if (liff.isLoggedIn()) {
-        const profile = await liff.getProfile();
-        lineUserName = profile.displayName;
-        recordedInput.value = lineUserName;
-        recordedInput.readOnly = true;
-      } else {
-        liff.login();
+  window.onload = async function() {
+    if (LIFF_ID) {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          userLineId = profile.userId;
+        }
+      } catch (err) {
+        console.warn("LIFF error:", err);
       }
-    } else {
-      recordedInput.placeholder = "ระบุชื่อผู้บันทึก";
     }
-  } catch (err) {
-    console.log("LIFF Init Exception:", err);
-    recordedInput.placeholder = "ระบุชื่อผู้บันทึก";
-  }
-}
-
-function switchView(view) {
-  if (view === 'form') {
-    document.getElementById('formView').style.display = 'block';
-    document.getElementById('listView').style.display = 'none';
-    document.getElementById('btnForm').className = 'ios-segment-btn active';
-    document.getElementById('btnList').className = 'ios-segment-btn';
-  } else {
-    document.getElementById('formView').style.display = 'none';
-    document.getElementById('listView').style.display = 'block';
-    document.getElementById('btnForm').className = 'ios-segment-btn';
-    document.getElementById('btnList').className = 'ios-segment-btn active';
     loadData();
+  };
+
+  function handleImageUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    Swal.fire({ title: 'กำลังประมวลผลรูปภาพ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    let loadedCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          const maxWidth = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+          images.push({
+            base64: compressedBase64,
+            type: 'image/jpeg',
+            name: file.name
+          });
+
+          loadedCount++;
+          if (loadedCount === files.length) {
+            renderImages();
+            document.getElementById("imageInput").value = "";
+            Swal.close();
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
-}
 
-function handleImageUpload(event) {
-  let files = event.target.files;
-  if (!files || files.length === 0) return;
+  function renderImages() {
+    const container = document.getElementById("imagePreviewContainer");
+    let html = "";
 
-  let loadedCount = 0;
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i];
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      images.push({ base64: e.target.result, type: file.type, name: file.name });
-      loadedCount++;
-      if (loadedCount === files.length) {
-        renderPreview();
-        document.getElementById("imageInput").value = "";
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function removeNewImage(index) {
-  images.splice(index, 1);
-  renderPreview();
-}
-
-function removeOldImage(index) {
-  oldImages.splice(index, 1);
-  renderPreview();
-}
-
-function renderPreview() {
-  let container = document.getElementById("imagePreview");
-  let html = "";
-  
-  oldImages.forEach((url, idx) => {
-    if (url) {
+    oldImages.forEach((url, idx) => {
       html += `
         <div class="img-wrapper">
           <img src="${url}" class="img-thumb">
-          <span class="btn-del-img" onclick="removeOldImage(${idx})">×</span>
+          <button type="button" class="btn-del-img" onclick="removeOldImage(${idx})">×</button>
         </div>
       `;
-    }
-  });
-
-  images.forEach((img, idx) => {
-    html += `
-      <div class="img-wrapper">
-        <img src="${img.base64}" class="img-thumb">
-        <span class="btn-del-img" onclick="removeNewImage(${idx})">×</span>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
-}
-
-async function saveData() {
-  let name = document.getElementById("name").value;
-  let recordedBy = document.getElementById("recordedBy").value;
-
-  if (!name.trim()) {
-    Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณากรอกชื่ออุปกรณ์' });
-    return;
-  }
-
-  if (!recordedBy.trim()) {
-    Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณาระบุชื่อผู้บันทึก' });
-    return;
-  }
-
-  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-  let rowIdx = document.getElementById("rowIndex").value;
-  let payload = {
-    action: rowIdx ? "update" : "create",
-    rowIndex: rowIdx,
-    assetId: document.getElementById("assetId").value,
-    name: name,
-    category: document.getElementById("category").value,
-    brand: document.getElementById("brand").value,
-    model: document.getElementById("model").value,
-    serialNo: document.getElementById("serialNo").value,
-    quantity: document.getElementById("quantity").value,
-    unit: document.getElementById("unit").value,
-    location: document.getElementById("location").value,
-    status: document.getElementById("status").value,
-    recordedBy: recordedBy,
-    OldImages: oldImages.filter(Boolean).join(","),  // <-- ตรงนี้
-    newImages: JSON.stringify(images)
-  };
-
-  try {
-    await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
     });
 
-    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกข้อมูลเรียบร้อยแล้ว' });
-    resetForm();
-    switchView('list');
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
+    images.forEach((img, idx) => {
+      html += `
+        <div class="img-wrapper">
+          <img src="${img.base64}" class="img-thumb">
+          <button type="button" class="btn-del-img" onclick="removeNewImage(${idx})">×</button>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
   }
-}
 
-async function loadData() {
-  let box = document.getElementById("listContainer");
-  box.innerHTML = '<div class="text-center py-4 text-secondary">กำลังโหลดรายการ...</div>';
+  function removeOldImage(idx) {
+    oldImages.splice(idx, 1);
+    renderImages();
+  }
 
-  try {
-    let res = await fetch(GAS_URL + "?action=readAll");
-    let result = await res.json();
-    allData = result.data || [];
+  function removeNewImage(idx) {
+    images.splice(idx, 1);
+    renderImages();
+  }
 
-    if (allData.length === 0) {
-      box.innerHTML = '<div class="text-center py-4 text-secondary">ไม่มีรายการอุปกรณ์</div>';
+  async function saveData() {
+    const name = document.getElementById("name").value;
+    if (!name.trim()) {
+      Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่ออุปกรณ์', 'warning');
       return;
     }
 
-    let html = "";
-    allData.forEach((item, index) => {
-      html += `
-        <div class="item-card">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <span class="badge" style="background: #E5E5EA; color: #8E8E93; font-weight: 500; font-size: 11px;">Asset ID: ${item.assetId || '-'}</span>
-              <div class="fw-bold fs-6 text-dark mt-1">${item.name}</div>
-            </div>
-            
-            <!-- ปุ่ม Action สไตล์ iOS (เรียบหรู ไม่รก) -->
-            <div class="d-flex gap-2">
-              <button class="btn btn-sm text-primary p-1 border-0" onclick="editItem(${index})" title="แก้ไข">
-                <i class="bi bi-pencil-square fs-5"></i>
-              </button>
-              <button class="btn btn-sm text-danger p-1 border-0" onclick="deleteItem('${item.rowIndex}')" title="ลบ">
-                <i class="bi bi-trash3 fs-5"></i>
-              </button>
-            </div>
-          </div>
+    Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-          <div class="small text-secondary mt-2 pt-2 border-top">
-            <div><span class="text-muted">สถานที่:</span> <span class="text-dark">${item.location || '-'}</span></div>
-            <div><span class="text-muted">สถานะ:</span> <span class="badge rounded-pill bg-primary fw-normal">${item.status}</span></div>
-            <div><span class="text-muted">ผู้บันทึก:</span> <span class="text-dark">${item.recordedBy || '-'}</span></div>
+    const payload = {
+      rowIndex: document.getElementById("rowIndex").value,
+      assetId: document.getElementById("assetId").value,
+      name: name,
+      category: document.getElementById("category").value,
+      brand: document.getElementById("brand").value,
+      model: document.getElementById("model").value,
+      serialNo: document.getElementById("serialNo").value,
+      quantity: document.getElementById("quantity").value,
+      unit: document.getElementById("unit").value,
+      location: document.getElementById("location").value,
+      status: document.getElementById("status").value,
+      recordedBy: document.getElementById("recordedBy").value,
+      lineId: userLineId,
+      oldImages: oldImages.join(","),
+      newImages: JSON.stringify(images)
+    };
+
+    try {
+      if (window.google && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            Swal.fire('สำเร็จ', res.message, 'success');
+            resetForm();
+            loadData();
+          })
+          .withFailureHandler(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'))
+          .saveEquipment(payload);
+      } else {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (res.success) {
+          Swal.fire('สำเร็จ', res.message, 'success');
+          resetForm();
+          loadData();
+        } else {
+          Swal.fire('ข้อผิดพลาด', res.message, 'error');
+        }
+      }
+    } catch (err) {
+      Swal.fire('ข้อผิดพลาด', err.message, 'error');
+    }
+  }
+
+  function loadData() {
+    if (window.google && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(renderTable).getEquipmentData();
+    } else {
+      fetch(GAS_URL + "?action=get")
+        .then(res => res.json())
+        .then(data => renderTable(data))
+        .catch(err => console.error(err));
+    }
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("equipmentTableBody");
+    tbody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">ไม่มีข้อมูลอุปกรณ์ในระบบ</td></tr>`;
+      return;
+    }
+
+    data.forEach(item => {
+      let imgHtml = '-';
+      if (item.imageUrl) {
+        const urls = item.imageUrl.split(',').filter(Boolean);
+        imgHtml = urls.map(u => `<img src="${u}" class="table-img" onclick="openImageModal('${u}')">`).join('');
+      }
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${imgHtml}</td>
+        <td><small class="fw-bold">${item.assetId}</small></td>
+        <td><strong>${item.name}</strong></td>
+        <td>${item.category || '-'}</td>
+        <td>${item.brand || '-'} ${item.model ? '/' + item.model : ''}</td>
+        <td>${item.quantity} ${item.unit}</td>
+        <td>${item.location || '-'}</td>
+        <td><span class="badge ${getStatusBadge(item.status)}">${item.status}</span></td>
+        <td><small>${item.recordedBy || '-'}</small></td>
+        <td class="text-center">
+          <div class="btn-action-group">
+            <button class="btn btn-sm btn-outline-primary" onclick='editEquipment(${JSON.stringify(item)})'><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteEquipment(${item.rowIndex})"><i class="fa-solid fa-trash"></i></button>
           </div>
-        </div>
+        </td>
       `;
+      tbody.appendChild(tr);
     });
-    box.innerHTML = html;
-  } catch (err) {
-    box.innerHTML = '<div class="text-center py-4 text-danger">ดึงข้อมูลไม่สำเร็จ</div>';
-  }
-}
-
-function editItem(index) {
-  let item = allData[index];
-  if (!item) return;
-
-  document.getElementById("rowIndex").value = item.rowIndex;
-  document.getElementById("assetId").value = item.assetId;
-  document.getElementById("name").value = item.name;
-  document.getElementById("category").value = item.category;
-  document.getElementById("brand").value = item.brand;
-  document.getElementById("model").value = item.model;
-  document.getElementById("serialNo").value = item.serialNo;
-  document.getElementById("quantity").value = item.quantity;
-  document.getElementById("unit").value = item.unit;
-  document.getElementById("location").value = item.location;
-  document.getElementById("status").value = item.status;
-  
-  if (lineUserName) {
-    document.getElementById("recordedBy").value = lineUserName;
-  } else {
-    document.getElementById("recordedBy").value = item.recordedBy || "";
   }
 
-  images = [];
-  oldImages = item.images ? item.images.split(",").filter(Boolean) : [];
-  renderPreview();
+  function editEquipment(item) {
+    document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>แก้ไขรายการอุปกรณ์ (${item.assetId})`;
+    document.getElementById("rowIndex").value = item.rowIndex;
+    document.getElementById("assetId").value = item.assetId;
+    document.getElementById("name").value = item.name;
+    document.getElementById("category").value = item.category;
+    document.getElementById("brand").value = item.brand;
+    document.getElementById("model").value = item.model;
+    document.getElementById("serialNo").value = item.serialNo;
+    document.getElementById("quantity").value = item.quantity;
+    document.getElementById("unit").value = item.unit;
+    document.getElementById("location").value = item.location;
+    document.getElementById("status").value = item.status;
+    document.getElementById("recordedBy").value = item.recordedBy;
 
-  document.getElementById("btnSubmit").innerText = "อัปเดตข้อมูล";
-  switchView('form');
-}
+    oldImages = item.imageUrl ? item.imageUrl.split(',').filter(Boolean) : [];
+    images = [];
+    renderImages();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-async function deleteItem(rowIndex) {
-  let confirm = await Swal.fire({
-    title: 'ยืนยันการลบ?',
-    text: "คุณต้องการลบรายการนี้ใช่หรือไม่",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'ลบรายการ',
-    cancelButtonText: 'ยกเลิก'
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-  try {
-    await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "delete", rowIndex: rowIndex })
+  function deleteEquipment(rowIndex) {
+    Swal.fire({
+      title: 'ยืนยันการลบ?',
+      text: "ต้องการลบรายการนี้ใช่หรือไม่?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmColor: '#dc3545',
+      confirmButtonText: 'ลบข้อมูล',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        if (window.google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(res => {
+              Swal.fire('สำเร็จ', res.message, 'success');
+              loadData();
+            })
+            .deleteEquipment(rowIndex);
+        }
+      }
     });
-
-    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ลบรายการเรียบร้อยแล้ว' });
-    loadData();
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.toString() });
-  }
-}
-
-function resetForm() {
-  document.querySelectorAll("#formView input").forEach(i => {
-    if(i.type !== 'hidden' && i.type !== 'file') i.value = "";
-  });
-  document.getElementById("quantity").value = 1;
-  document.getElementById("status").value = "ใช้งานปกติ";
-  document.getElementById("rowIndex").value = "";
-  document.getElementById("assetId").value = "";
-  
-  if (lineUserName) {
-    document.getElementById("recordedBy").value = lineUserName;
   }
 
-  document.getElementById("btnSubmit").innerText = "บันทึกข้อมูล";
-  images = [];
-  oldImages = [];
-  document.getElementById("imagePreview").innerHTML = "";
-  document.getElementById("imageInput").value = "";
-}
+  function resetForm() {
+    document.getElementById("formTitle").innerHTML = `<i class="fa-solid fa-pen-to-square me-2"></i>บันทึกอุปกรณ์ใหม่`;
+    document.getElementById("equipmentForm").reset();
+    document.getElementById("rowIndex").value = "";
+    document.getElementById("assetId").value = "";
+    images = [];
+    oldImages = [];
+    renderImages();
+  }
+
+  function getStatusBadge(status) {
+    switch (status) {
+      case 'ใช้งานปกติ': return 'bg-success';
+      case 'ชำรุด/รออะไหล่': return 'bg-warning text-dark';
+      case 'ชำรุด/ส่งซ่อม': return 'bg-orange text-dark';
+      case 'ชำรุด/ไม่ได้ใช้งาน': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  }
+
+  function openImageModal(url) {
+    Swal.fire({ imageUrl: url, imageAlt: 'อุปกรณ์', showCloseButton: true, showConfirmButton: false });
+  }
 </script>
-
 </body>
 </html>
