@@ -184,17 +184,14 @@
     }
     .empty-state i{ font-size:34px; margin-bottom:10px; display:block; }
 
-    /* รายงานสำหรับพิมพ์เป็น PDF */
-    #printReport{ display:none; }
-    #printTable{ width:100%; border-collapse:collapse; font-size:12px; }
+    /* รายงานสำหรับสร้าง PDF (วางไว้นอกจอ ไม่ใช้ display:none เพื่อให้ html2canvas จับภาพได้) */
+    #printReport{
+      position:absolute; top:0; left:-9999px; width:800px;
+      background:#fff; padding:24px; color:#000;
+    }
+    #printTable{ width:100%; border-collapse:collapse; font-size:13px; }
     #printTable th, #printTable td{ border:1px solid #999; padding:6px 8px; text-align:left; }
     #printTable th{ background:#eee; }
-
-    @media print{
-      body *{ visibility:hidden; }
-      #printReport, #printReport *{ visibility:visible; }
-      #printReport{ display:block; position:absolute; top:0; left:0; width:100%; padding:20px; }
-    }
   </style>
 </head>
 <body>
@@ -254,12 +251,16 @@
     </div>
     <div class="ios-row">
       <label>สถานะ</label>
-      <select id="status">
+      <select id="status" onchange="toggleRemarkField()">
         <option value="ใช้งานปกติ" selected>ใช้งานปกติ</option>
         <option value="ชำรุด/รออะไหล่">ชำรุด/รออะไหล่</option>
         <option value="ชำรุด/ส่งซ่อม">ชำรุด/ส่งซ่อม</option>
         <option value="ชำรุด/ไม่ได้ใช้งาน">ชำรุด/ไม่ได้ใช้งาน</option>
       </select>
+    </div>
+    <div class="ios-row" id="remarkRow" style="display:none;">
+      <label>รายละเอียด</label>
+      <input type="text" id="remark" placeholder="ระบุรายละเอียดอาการชำรุด / หมายเหตุ">
     </div>
   </div>
 
@@ -330,10 +331,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
   // URL Web App ของคุณ — ต้องเป็น URL การ deploy จริง (ลงท้ายด้วยรหัส deployment เต็ม ไม่ใช่ค่าตัวอย่าง)
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbw6XAyrS2xm4yHwnnhkfZWRIesg30grwpyefpHtfX0qzOVIplHB3XWhECAv8_hEa82q/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzKGcRWt2G97zf_kA42nxwgundfx_v9aQVXEfyRgt8iSo6jWyIDmd033npnF66AzKQA/exec";
   const LIFF_ID = "2010924055-ptu13GAx"; // ใส่ LIFF ID (ถ้ามี)
 
   let images = [];
@@ -498,6 +501,7 @@
       unit: document.getElementById("unit").value,
       location: document.getElementById("location").value,
       status: document.getElementById("status").value,
+      remark: document.getElementById("remark").value,
       recordedBy: document.getElementById("recordedBy").value,
       lineId: document.getElementById("lineId").value || userLineId,
       oldImages: oldImages.join(","),
@@ -613,7 +617,7 @@
     const urls = (item.imageUrl || "").split(',').filter(Boolean);
     const imagesHtml = urls.length
       ? `<div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:14px;">
-          ${urls.map(u => `<img src="${u}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #ddd;">`).join('')}
+          ${urls.map(u => `<img src="${u}" onclick="openImageModal('${u}')" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #ddd;cursor:pointer;">`).join('')}
         </div>`
       : `<div style="text-align:center; color:#999; margin-bottom:14px;"><i class="fa-solid fa-box" style="font-size:32px;"></i></div>`;
 
@@ -625,10 +629,13 @@
       ['Serial No', item.serialNo],
       ['จำนวน', (item.quantity || '-') + ' ' + (item.unit || '')],
       ['สถานที่', item.location],
-      ['สถานะ', item.status],
-      ['ผู้บันทึก', item.recordedBy],
-      ['วันที่บันทึก', item.dateRecorded]
+      ['สถานะ', item.status]
     ];
+    if (item.remark) {
+      rows.push(['รายละเอียด', item.remark]);
+    }
+    rows.push(['ผู้บันทึก', item.recordedBy]);
+    rows.push(['วันที่บันทึก', item.dateRecorded]);
 
     const rowsHtml = rows.map(([label, value]) => `
       <div style="display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #eee; font-size:14px; text-align:left;">
@@ -655,7 +662,7 @@
   }
 
   // ---------- ส่งออก PDF รายการอุปกรณ์ทั้งหมด (ใช้หน้าต่างพิมพ์ของเบราว์เซอร์) ----------
-  function exportListPDF() {
+  async function exportListPDF() {
     const data = currentListData && currentListData.length ? currentListData : globalData;
     if (!data || data.length === 0) {
       Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลให้ส่งออก', 'warning');
@@ -682,8 +689,40 @@
     document.getElementById("printDate").textContent =
       "วันที่พิมพ์: " + new Date().toLocaleString('th-TH') + " · ทั้งหมด " + data.length + " รายการ";
 
-    // เปิดหน้าต่างพิมพ์ของเบราว์เซอร์ ผู้ใช้เลือก "บันทึกเป็น PDF" ได้จากตัวเลือกปลายทาง
-    window.print();
+    Swal.fire({ title: 'กำลังสร้าง PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+      const reportEl = document.getElementById('printReport');
+      // ถ่ายภาพ DOM ของรายงานเป็น canvas ก่อน (ข้อความไทยจะถูกวาดโดยเบราว์เซอร์เอง จึงไม่มีปัญหาฟอนต์ไม่รองรับภาษาไทยแบบที่พบใน jsPDF ปกติ)
+      const canvas = await html2canvas(reportEl, { scale: 2, backgroundColor: '#ffffff' });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const imgData = canvas.toDataURL('image/png');
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save('รายการอุปกรณ์_' + Date.now() + '.pdf');
+      Swal.close();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('ข้อผิดพลาด', 'สร้าง PDF ไม่สำเร็จ: ' + err.message, 'error');
+    }
   }
 
   function escapeHtml(str) {
@@ -726,6 +765,8 @@
     document.getElementById("unit").value = item.unit || '';
     document.getElementById("location").value = item.location || '';
     document.getElementById("status").value = item.status || 'ใช้งานปกติ';
+    document.getElementById("remark").value = item.remark || '';
+    toggleRemarkField();
     document.getElementById("recordedBy").value = item.recordedBy || document.getElementById("recordedBy").value;
     if (item.lineId) document.getElementById("lineId").value = item.lineId;
 
@@ -783,10 +824,19 @@
     document.getElementById("unit").value = "";
     document.getElementById("location").value = "";
     document.getElementById("status").value = "ใช้งานปกติ";
+    document.getElementById("remark").value = "";
+    toggleRemarkField();
     if (userLineId) document.getElementById("lineId").value = userLineId;
     images = [];
     oldImages = [];
     renderImages();
+  }
+
+  // แสดงช่อง "รายละเอียด" เฉพาะเมื่อสถานะเป็นกลุ่ม "ชำรุด/..."
+  function toggleRemarkField() {
+    const status = document.getElementById("status").value;
+    const remarkRow = document.getElementById("remarkRow");
+    remarkRow.style.display = status.startsWith("ชำรุด") ? "block" : "none";
   }
 
   function getStatusBadgeClass(status) {
