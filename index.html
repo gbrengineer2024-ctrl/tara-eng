@@ -183,6 +183,18 @@
       text-align:center; padding:48px 16px; color:var(--ios-label);
     }
     .empty-state i{ font-size:34px; margin-bottom:10px; display:block; }
+
+    /* รายงานสำหรับพิมพ์เป็น PDF */
+    #printReport{ display:none; }
+    #printTable{ width:100%; border-collapse:collapse; font-size:12px; }
+    #printTable th, #printTable td{ border:1px solid #999; padding:6px 8px; text-align:left; }
+    #printTable th{ background:#eee; }
+
+    @media print{
+      body *{ visibility:hidden; }
+      #printReport, #printReport *{ visibility:visible; }
+      #printReport{ display:block; position:absolute; top:0; left:0; width:100%; padding:20px; }
+    }
   </style>
 </head>
 <body>
@@ -192,7 +204,7 @@
   <div class="segmented">
     <div class="segmented-thumb" id="segThumb"></div>
     <button type="button" id="tabFormBtn" class="active" onclick="switchTab('form')">บันทึกอุปกรณ์ใหม่</button>
-    <button type="button" id="tabListBtn" onclick="switchTab('list')">รายการอุปกรณ์</button>
+    <button type="button" id="tabListBtn" onclick="switchTab('list')">รายการอุปกรณ์ทั้งหมด</button>
   </div>
 </div>
 
@@ -282,13 +294,39 @@
 
 <!-- ===================== หน้าที่ 2: รายการอุปกรณ์ ===================== -->
 <div class="page" id="pageList" hidden>
-  <div class="ios-search">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <input type="text" id="searchInput" placeholder="ค้นหาอุปกรณ์..." onkeyup="filterTable()">
+  <div style="display:flex; gap:8px; margin-bottom:14px;">
+    <div class="ios-search" style="flex:1; margin-bottom:0;">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="ค้นหาอุปกรณ์..." onkeyup="filterTable()">
+    </div>
+    <button type="button" class="ios-chip-btn" style="margin:0; white-space:nowrap;" onclick="exportListPDF()">
+      <i class="fa-solid fa-file-pdf"></i> PDF
+    </button>
   </div>
   <div id="equipmentListContainer">
     <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>กำลังโหลดข้อมูล...</div>
   </div>
+</div>
+
+<!-- รายงานสำหรับพิมพ์เป็น PDF เท่านั้น (ซ่อนอยู่บนหน้าจอปกติ) -->
+<div id="printReport">
+  <h2 style="margin:0 0 4px;">รายการอุปกรณ์ทั้งหมด</h2>
+  <p style="margin:0 0 16px; font-size:12px; color:#555;" id="printDate"></p>
+  <table id="printTable">
+    <thead>
+      <tr>
+        <th>Asset ID</th>
+        <th>ชื่ออุปกรณ์</th>
+        <th>หมวดหมู่</th>
+        <th>ยี่ห้อ/รุ่น</th>
+        <th>จำนวน</th>
+        <th>สถานที่</th>
+        <th>สถานะ</th>
+        <th>ผู้บันทึก</th>
+      </tr>
+    </thead>
+    <tbody id="printTableBody"></tbody>
+  </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -525,8 +563,11 @@
   }
 
   // ---------- แสดงรายการแบบการ์ด iOS ----------
+  let currentListData = [];
+
   function renderTable(data) {
     const container = document.getElementById("equipmentListContainer");
+    currentListData = data || [];
 
     if (!data || data.length === 0) {
       container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>ไม่มีข้อมูลอุปกรณ์ในระบบ</div>`;
@@ -537,13 +578,13 @@
     data.forEach((item, idx) => {
       const urls = (item.imageUrl || "").split(',').filter(Boolean);
       const thumb = urls.length
-        ? `<img src="${urls[0]}" class="eq-thumb" onclick="openImageModal('${urls[0]}')">`
+        ? `<img src="${urls[0]}" class="eq-thumb" onclick="event.stopPropagation(); openImageModal('${urls[0]}')">`
         : `<div class="eq-thumb-placeholder"><i class="fa-solid fa-box"></i></div>`;
 
       const brandModel = [item.brand, item.model].filter(Boolean).join(' / ') || '-';
 
       html += `
-        <div class="eq-card">
+        <div class="eq-card" onclick="viewEquipmentDetail(${idx})">
           ${thumb}
           <div class="eq-info">
             <p class="eq-name">${escapeHtml(item.name || '-')}</p>
@@ -554,14 +595,95 @@
             </div>
           </div>
           <div class="eq-actions">
-            <button class="icon-btn icon-btn-edit" onclick="editEquipmentByIndex(${idx})" aria-label="แก้ไข"><i class="fa-solid fa-pen"></i></button>
-            <button class="icon-btn icon-btn-del" onclick="deleteEquipment(${item.rowIndex})" aria-label="ลบ"><i class="fa-solid fa-trash"></i></button>
+            <button class="icon-btn icon-btn-edit" onclick="event.stopPropagation(); editEquipmentByIndex(${idx})" aria-label="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn icon-btn-del" onclick="event.stopPropagation(); deleteEquipment(${item.rowIndex})" aria-label="ลบ"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
       `;
     });
 
     container.innerHTML = html;
+  }
+
+  // ---------- ดูรายละเอียด/รีวิวอุปกรณ์ (แตะที่การ์ด) ----------
+  function viewEquipmentDetail(idx) {
+    const item = currentListData[idx];
+    if (!item) return;
+
+    const urls = (item.imageUrl || "").split(',').filter(Boolean);
+    const imagesHtml = urls.length
+      ? `<div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:14px;">
+          ${urls.map(u => `<img src="${u}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #ddd;">`).join('')}
+        </div>`
+      : `<div style="text-align:center; color:#999; margin-bottom:14px;"><i class="fa-solid fa-box" style="font-size:32px;"></i></div>`;
+
+    const rows = [
+      ['Asset ID', item.assetId],
+      ['หมวดหมู่', item.category],
+      ['ยี่ห้อ', item.brand],
+      ['รุ่น', item.model],
+      ['Serial No', item.serialNo],
+      ['จำนวน', (item.quantity || '-') + ' ' + (item.unit || '')],
+      ['สถานที่', item.location],
+      ['สถานะ', item.status],
+      ['ผู้บันทึก', item.recordedBy],
+      ['วันที่บันทึก', item.dateRecorded]
+    ];
+
+    const rowsHtml = rows.map(([label, value]) => `
+      <div style="display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #eee; font-size:14px; text-align:left;">
+        <span style="color:#8E8E93;">${escapeHtml(label)}</span>
+        <span style="font-weight:600; text-align:right;">${escapeHtml(value || '-')}</span>
+      </div>
+    `).join('');
+
+    Swal.fire({
+      title: item.name || 'รายละเอียดอุปกรณ์',
+      html: `${imagesHtml}<div>${rowsHtml}</div>`,
+      showCloseButton: true,
+      showConfirmButton: true,
+      confirmButtonText: 'แก้ไขรายการนี้',
+      confirmButtonColor: '#1C1C1E',
+      showCancelButton: true,
+      cancelButtonText: 'ปิด',
+      cancelButtonColor: '#8E8E93'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        editEquipment(item);
+      }
+    });
+  }
+
+  // ---------- ส่งออก PDF รายการอุปกรณ์ทั้งหมด (ใช้หน้าต่างพิมพ์ของเบราว์เซอร์) ----------
+  function exportListPDF() {
+    const data = currentListData && currentListData.length ? currentListData : globalData;
+    if (!data || data.length === 0) {
+      Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลให้ส่งออก', 'warning');
+      return;
+    }
+
+    const tbody = document.getElementById("printTableBody");
+    tbody.innerHTML = data.map(item => {
+      const brandModel = [item.brand, item.model].filter(Boolean).join(' / ') || '-';
+      return `
+        <tr>
+          <td>${escapeHtml(item.assetId || '-')}</td>
+          <td>${escapeHtml(item.name || '-')}</td>
+          <td>${escapeHtml(item.category || '-')}</td>
+          <td>${escapeHtml(brandModel)}</td>
+          <td>${escapeHtml((item.quantity || '-') + ' ' + (item.unit || ''))}</td>
+          <td>${escapeHtml(item.location || '-')}</td>
+          <td>${escapeHtml(item.status || '-')}</td>
+          <td>${escapeHtml(item.recordedBy || '-')}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById("printDate").textContent =
+      "วันที่พิมพ์: " + new Date().toLocaleString('th-TH') + " · ทั้งหมด " + data.length + " รายการ";
+
+    // เปิดหน้าต่างพิมพ์ของเบราว์เซอร์ ผู้ใช้เลือก "บันทึกเป็น PDF" ได้จากตัวเลือกปลายทาง
+    window.print();
   }
 
   function escapeHtml(str) {
@@ -583,10 +705,10 @@
     renderTable(filtered);
   }
 
-  // ใช้ index อ้างอิงจาก globalData แทนการฝัง JSON ลงใน onclick โดยตรง
-  // (การฝัง JSON.stringify(item) ลง HTML attribute ตรงๆ อาจพังถ้าชื่ออุปกรณ์มีเครื่องหมายคำพูด)
+  // ใช้ index อ้างอิงจาก currentListData (รายการที่กำลังแสดงอยู่ ซึ่งอาจถูกกรองจากการค้นหา)
+  // แทนการฝัง JSON ลงใน onclick โดยตรง (การฝัง JSON.stringify(item) ลง HTML attribute ตรงๆ อาจพังถ้าชื่ออุปกรณ์มีเครื่องหมายคำพูด)
   function editEquipmentByIndex(idx) {
-    const item = globalData[idx];
+    const item = currentListData[idx];
     if (!item) return;
     editEquipment(item);
   }
