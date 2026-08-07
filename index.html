@@ -269,7 +269,7 @@
   <div class="ios-group-title">ผู้บันทึก</div>
   <div class="ios-list">
     <div class="ios-row readonly">
-      <label>ผู้บันทึก</label>
+      <label>ผู้บันทึก (ดึงจาก LINE อัตโนมัติ)</label>
       <input type="text" id="recordedBy" readonly placeholder="กำลังดึงข้อมูล LINE...">
     </div>
   </div>
@@ -323,6 +323,7 @@
         <th>ยี่ห้อ/รุ่น</th>
         <th>สถานที่</th>
         <th>สถานะ</th>
+        <th>รายละเอียด</th>
         <th>ผู้บันทึก</th>
       </tr>
     </thead>
@@ -339,7 +340,7 @@
 
 <script>
   // URL Web App ของคุณ — ต้องเป็น URL การ deploy จริง (ลงท้ายด้วยรหัส deployment เต็ม ไม่ใช่ค่าตัวอย่าง)
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxkezXvrV6LQmlA0GTdHawRP8Z7-ysV6Lzl-vhsP2nUKz6XBgWUNT8yFoM8CDmqKusQ/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwb4goqDZgzPJy_YROgSaWxzE01Et7oTF46vIfs-k4phtTC0fAHJMi4bsCQMtDJWMrD/exec";
   const LIFF_ID = "2010924055-ptu13GAx"; // ใส่ LIFF ID (ถ้ามี)
 
   let images = [];
@@ -690,6 +691,7 @@
           <td>${escapeHtml(brandModel)}</td>
           <td>${escapeHtml(item.location || '-')}</td>
           <td>${escapeHtml(item.status || '-')}</td>
+          <td>${escapeHtml(item.remark || '-')}</td>
           <td>${escapeHtml(item.recordedBy || '-')}</td>
         </tr>
       `;
