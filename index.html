@@ -190,8 +190,9 @@
       background:#fff; padding:24px; color:#000;
     }
     #printTable{ width:100%; border-collapse:collapse; font-size:13px; }
-    #printTable th, #printTable td{ border:1px solid #999; padding:6px 8px; text-align:left; }
+    #printTable th, #printTable td{ border:1px solid #999; padding:6px 8px; text-align:left; vertical-align:middle; }
     #printTable th{ background:#eee; }
+    #printTable img.print-thumb{ width:40px; height:40px; object-fit:cover; border-radius:4px; display:block; }
   </style>
 </head>
 <body>
@@ -246,7 +247,7 @@
       <input type="text" id="unit" placeholder="เครื่อง / ชุด / ชิ้น">
     </div>
     <div class="ios-row">
-      <label>สถานที่</label>
+      <label>สถานที่จัดเก็บ / ใช้งาน</label>
       <input type="text" id="location" placeholder="ระบุสถานที่">
     </div>
     <div class="ios-row">
@@ -316,6 +317,7 @@
   <table id="printTable">
     <thead>
       <tr>
+        <th>รูปภาพ</th>
         <th>Asset ID</th>
         <th>ชื่ออุปกรณ์</th>
         <th>หมวดหมู่</th>
@@ -672,8 +674,13 @@
     const tbody = document.getElementById("printTableBody");
     tbody.innerHTML = data.map(item => {
       const brandModel = [item.brand, item.model].filter(Boolean).join(' / ') || '-';
+      const urls = (item.imageUrl || "").split(',').filter(Boolean);
+      const imgCell = urls.length
+        ? `<img class="print-thumb" src="${urls[0]}" crossorigin="anonymous">`
+        : '-';
       return `
         <tr>
+          <td>${imgCell}</td>
           <td>${escapeHtml(item.assetId || '-')}</td>
           <td>${escapeHtml(item.name || '-')}</td>
           <td>${escapeHtml(item.category || '-')}</td>
@@ -693,8 +700,20 @@
 
     try {
       const reportEl = document.getElementById('printReport');
+
+      // รอให้รูปภาพในรายงานโหลดเสร็จก่อน ไม่งั้น html2canvas อาจจับภาพตอนรูปยังว่างอยู่
+      const imgEls = reportEl.querySelectorAll('img');
+      await Promise.all(Array.from(imgEls).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve; // รูปโหลดไม่สำเร็จก็ไม่ให้ค้าง ปล่อยผ่านไปแสดงเป็นช่องว่าง
+        });
+      }));
+
       // ถ่ายภาพ DOM ของรายงานเป็น canvas ก่อน (ข้อความไทยจะถูกวาดโดยเบราว์เซอร์เอง จึงไม่มีปัญหาฟอนต์ไม่รองรับภาษาไทยแบบที่พบใน jsPDF ปกติ)
-      const canvas = await html2canvas(reportEl, { scale: 2, backgroundColor: '#ffffff' });
+      // useCORS: true จำเป็นเพื่อให้ดึงรูปจาก Google Drive มาวาดลง canvas ได้
+      const canvas = await html2canvas(reportEl, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -717,8 +736,28 @@
         heightLeft -= pageHeight;
       }
 
-      pdf.save('รายการอุปกรณ์_' + Date.now() + '.pdf');
-      Swal.close();
+      const fileName = 'รายการอุปกรณ์_' + Date.now() + '.pdf';
+
+      // มือถือ: ใช้ Share Sheet ของเครื่อง (เลือก "บันทึกลง Files" ได้ตรงๆ) ถ้าเบราว์เซอร์รองรับ
+      // ถ้าไม่รองรับ (เช่น เปิดผ่าน LINE in-app browser บางเวอร์ชัน) จะ fallback ไปดาวน์โหลดแบบปกติ
+      const pdfBlob = pdf.output('blob');
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        Swal.close();
+        try {
+          await navigator.share({
+            files: [pdfFile],
+            title: 'รายการอุปกรณ์',
+          });
+        } catch (shareErr) {
+          // ผู้ใช้กดยกเลิกการแชร์ ไม่ถือเป็นข้อผิดพลาด
+          console.warn('Share cancelled or failed:', shareErr);
+        }
+      } else {
+        pdf.save(fileName);
+        Swal.close();
+      }
     } catch (err) {
       console.error(err);
       Swal.fire('ข้อผิดพลาด', 'สร้าง PDF ไม่สำเร็จ: ' + err.message, 'error');
