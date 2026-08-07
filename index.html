@@ -185,7 +185,7 @@
     .empty-state i{ font-size:34px; margin-bottom:10px; display:block; }
 
     /* รายงานสำหรับสร้าง PDF (วางไว้นอกจอ ไม่ใช้ display:none เพื่อให้ html2canvas จับภาพได้) */
-    #printReport{
+    #printReport, #printSingleReport{
       position:absolute; top:0; left:-9999px; width:800px;
       background:#fff; padding:24px; color:#000;
     }
@@ -193,6 +193,7 @@
     #printTable th, #printTable td{ border:1px solid #999; padding:6px 8px; text-align:left; vertical-align:middle; }
     #printTable th{ background:#eee; }
     #printTable img.print-thumb{ width:40px; height:40px; object-fit:cover; border-radius:4px; display:block; }
+
   </style>
 </head>
 <body>
@@ -310,19 +311,16 @@
   </div>
 </div>
 
-<!-- รายงานสำหรับพิมพ์เป็น PDF เท่านั้น (ซ่อนอยู่บนหน้าจอปกติ) -->
+<!-- รายงานสำหรับสร้าง PDF รายการทั้งหมด (ซ่อนอยู่บนหน้าจอปกติ) -->
 <div id="printReport">
-  <h2 style="margin:0 0 4px;">รายการอุปกรณ์ทั้งหมด</h2>
-  <p style="margin:0 0 16px; font-size:12px; color:#555;" id="printDate"></p>
+  <h2 style="margin:0 0 12px;">รายการอุปกรณ์ทั้งหมด</h2>
   <table id="printTable">
     <thead>
       <tr>
         <th>รูปภาพ</th>
-        <th>Asset ID</th>
         <th>ชื่ออุปกรณ์</th>
         <th>หมวดหมู่</th>
         <th>ยี่ห้อ/รุ่น</th>
-        <th>จำนวน</th>
         <th>สถานที่</th>
         <th>สถานะ</th>
         <th>ผู้บันทึก</th>
@@ -331,6 +329,9 @@
     <tbody id="printTableBody"></tbody>
   </table>
 </div>
+
+<!-- รายงานสำหรับสร้าง PDF อุปกรณ์ชิ้นเดียว (ซ่อนอยู่บนหน้าจอปกติ เนื้อหาถูกสร้างด้วย JS ตอนกดส่งออก) -->
+<div id="printSingleReport"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -624,7 +625,6 @@
       : `<div style="text-align:center; color:#999; margin-bottom:14px;"><i class="fa-solid fa-box" style="font-size:32px;"></i></div>`;
 
     const rows = [
-      ['Asset ID', item.assetId],
       ['หมวดหมู่', item.category],
       ['ยี่ห้อ', item.brand],
       ['รุ่น', item.model],
@@ -637,7 +637,6 @@
       rows.push(['รายละเอียด', item.remark]);
     }
     rows.push(['ผู้บันทึก', item.recordedBy]);
-    rows.push(['วันที่บันทึก', item.dateRecorded]);
 
     const rowsHtml = rows.map(([label, value]) => `
       <div style="display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #eee; font-size:14px; text-align:left;">
@@ -653,12 +652,17 @@
       showConfirmButton: true,
       confirmButtonText: 'แก้ไขรายการนี้',
       confirmButtonColor: '#1C1C1E',
+      showDenyButton: true,
+      denyButtonText: '<i class="fa-solid fa-file-pdf"></i> PDF',
+      denyButtonColor: '#333',
       showCancelButton: true,
       cancelButtonText: 'ปิด',
       cancelButtonColor: '#8E8E93'
     }).then((result) => {
       if (result.isConfirmed) {
         editEquipment(item);
+      } else if (result.isDenied) {
+        exportItemPDF(item);
       }
     });
   }
@@ -681,11 +685,9 @@
       return `
         <tr>
           <td>${imgCell}</td>
-          <td>${escapeHtml(item.assetId || '-')}</td>
           <td>${escapeHtml(item.name || '-')}</td>
           <td>${escapeHtml(item.category || '-')}</td>
           <td>${escapeHtml(brandModel)}</td>
-          <td>${escapeHtml((item.quantity || '-') + ' ' + (item.unit || ''))}</td>
           <td>${escapeHtml(item.location || '-')}</td>
           <td>${escapeHtml(item.status || '-')}</td>
           <td>${escapeHtml(item.recordedBy || '-')}</td>
@@ -693,98 +695,153 @@
       `;
     }).join('');
 
-    document.getElementById("printDate").textContent =
-      "วันที่พิมพ์: " + new Date().toLocaleString('th-TH') + " · ทั้งหมด " + data.length + " รายการ";
-
     Swal.fire({ title: 'กำลังสร้าง PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
       const reportEl = document.getElementById('printReport');
-
-      // รอให้รูปภาพในรายงานโหลดเสร็จก่อน ไม่งั้น html2canvas อาจจับภาพตอนรูปยังว่างอยู่
-      const imgEls = reportEl.querySelectorAll('img');
-      await Promise.all(Array.from(imgEls).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve; // รูปโหลดไม่สำเร็จก็ไม่ให้ค้าง ปล่อยผ่านไปแสดงเป็นช่องว่าง
-        });
-      }));
-
-      // ถ่ายภาพ DOM ของรายงานเป็น canvas ก่อน (ข้อความไทยจะถูกวาดโดยเบราว์เซอร์เอง จึงไม่มีปัญหาฟอนต์ไม่รองรับภาษาไทยแบบที่พบใน jsPDF ปกติ)
-      // useCORS: true จำเป็นเพื่อให้ดึงรูปจาก Google Drive มาวาดลง canvas ได้
-      const canvas = await html2canvas(reportEl, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
-
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      const imgData = canvas.toDataURL('image/png');
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
+      const pdf = await buildPdfFromElement(reportEl);
       const fileName = 'รายการอุปกรณ์_' + Date.now() + '.pdf';
-
-      // บันทึกสำเนาลง Google Drive (โฟลเดอร์ "pdf") ผ่าน Apps Script backend
-      const dataUri = pdf.output('datauristring');
-      const pdfBase64 = dataUri.substring(dataUri.indexOf(',') + 1);
-      let driveUrl = '';
-      try {
-        const driveResult = await uploadPdfToDrive(pdfBase64, fileName);
-        if (driveResult && driveResult.success) {
-          driveUrl = driveResult.url || '';
-        } else if (driveResult) {
-          console.warn('บันทึกลง Drive ไม่สำเร็จ:', driveResult.message);
-        }
-      } catch (driveErr) {
-        console.warn('บันทึกลง Drive ไม่สำเร็จ:', driveErr);
-      }
-
-      // ยังคงให้ผู้ใช้บันทึก/แชร์ไฟล์บนเครื่องได้เหมือนเดิม (พฤติกรรมเดิมไม่เปลี่ยน)
-      // มือถือ: ใช้ Share Sheet ของเครื่อง (เลือก "บันทึกลง Files" ได้ตรงๆ) ถ้าเบราว์เซอร์รองรับ
-      // ถ้าไม่รองรับ (เช่น เปิดผ่าน LINE in-app browser บางเวอร์ชัน) จะ fallback ไปดาวน์โหลดแบบปกติ
-      const pdfBlob = pdf.output('blob');
-      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
       Swal.close();
-
-      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-        try {
-          await navigator.share({
-            files: [pdfFile],
-            title: 'รายการอุปกรณ์',
-          });
-        } catch (shareErr) {
-          // ผู้ใช้กดยกเลิกการแชร์ ไม่ถือเป็นข้อผิดพลาด
-          console.warn('Share cancelled or failed:', shareErr);
-        }
-      } else {
-        pdf.save(fileName);
-      }
-
-      if (driveUrl) {
-        Swal.fire({
-          title: 'บันทึกลง Google Drive แล้ว',
-          html: `<a href="${driveUrl}" target="_blank" rel="noopener">เปิดไฟล์ใน Drive</a>`,
-          icon: 'success'
-        });
-      }
+      await sharePdf(pdf, fileName);
     } catch (err) {
       console.error(err);
       Swal.fire('ข้อผิดพลาด', 'สร้าง PDF ไม่สำเร็จ: ' + err.message, 'error');
+    }
+  }
+
+  // ---------- ส่งออก PDF ของอุปกรณ์ชิ้นเดียว (จากหน้ารายละเอียด) ----------
+  async function exportItemPDF(item) {
+    Swal.fire({ title: 'กำลังสร้าง PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+      const urls = (item.imageUrl || "").split(',').filter(Boolean);
+      const imagesHtml = urls.length
+        ? `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+            ${urls.map(u => `<img src="${u}" crossorigin="anonymous" style="width:140px;height:140px;object-fit:cover;border-radius:6px;border:1px solid #ccc;">`).join('')}
+          </div>`
+        : '';
+
+      // ไม่แสดง Asset ID, จำนวน, วันที่บันทึก และไม่แสดงแถว "รายละเอียด" ถ้าไม่มีข้อมูล
+      const rows = [
+        ['หมวดหมู่', item.category],
+        ['ยี่ห้อ', item.brand],
+        ['รุ่น', item.model],
+        ['Serial No', item.serialNo],
+        ['สถานที่', item.location],
+        ['สถานะ', item.status]
+      ];
+      if (item.remark) {
+        rows.push(['รายละเอียด', item.remark]);
+      }
+      rows.push(['ผู้บันทึก', item.recordedBy]);
+
+      const rowsHtml = rows.map(([label, value]) => `
+        <tr>
+          <td style="border:1px solid #999; padding:6px 10px; background:#eee; width:150px;">${escapeHtml(label)}</td>
+          <td style="border:1px solid #999; padding:6px 10px;">${escapeHtml(value || '-')}</td>
+        </tr>
+      `).join('');
+
+      const itemReportEl = document.getElementById('printSingleReport');
+      itemReportEl.innerHTML = `
+        <h2 style="margin:0 0 16px;">${escapeHtml(item.name || 'อุปกรณ์')}</h2>
+        ${imagesHtml}
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">${rowsHtml}</table>
+      `;
+
+      const pdf = await buildPdfFromElement(itemReportEl);
+      const fileName = (item.name || 'อุปกรณ์').replace(/[\\/:*?"<>|]/g, '') + '_' + Date.now() + '.pdf';
+      Swal.close();
+      await sharePdf(pdf, fileName);
+    } catch (err) {
+      console.error(err);
+      Swal.fire('ข้อผิดพลาด', 'สร้าง PDF ไม่สำเร็จ: ' + err.message, 'error');
+    }
+  }
+
+  // ---------- สร้าง jsPDF (รองรับหลายหน้า) จาก element ที่กำหนด ----------
+  async function buildPdfFromElement(el) {
+    // รอให้รูปภาพในรายงานโหลดเสร็จก่อน ไม่งั้น html2canvas อาจจับภาพตอนรูปยังว่างอยู่
+    const imgEls = el.querySelectorAll('img');
+    await Promise.all(Array.from(imgEls).map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve; // รูปโหลดไม่สำเร็จก็ไม่ให้ค้าง ปล่อยผ่านไปแสดงเป็นช่องว่าง
+      });
+    }));
+
+    // ถ่ายภาพ DOM เป็น canvas (ข้อความไทยวาดโดยเบราว์เซอร์เอง จึงไม่มีปัญหาฟอนต์ไทยแบบที่พบใน jsPDF ปกติ)
+    // useCORS: true จำเป็นเพื่อให้ดึงรูปจาก Google Drive มาวาดลง canvas ได้
+    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const imgData = canvas.toDataURL('image/png');
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    return pdf;
+  }
+
+  // ---------- บันทึกลง Google Drive + แชร์/ดาวน์โหลดไฟล์บนเครื่อง ----------
+  async function sharePdf(pdf, fileName) {
+    // บันทึกสำเนาลง Google Drive (โฟลเดอร์ "pdf") ผ่าน Apps Script backend
+    const dataUri = pdf.output('datauristring');
+    const pdfBase64 = dataUri.substring(dataUri.indexOf(',') + 1);
+    let driveUrl = '';
+    try {
+      const driveResult = await uploadPdfToDrive(pdfBase64, fileName);
+      if (driveResult && driveResult.success) {
+        driveUrl = driveResult.url || '';
+      } else if (driveResult) {
+        console.warn('บันทึกลง Drive ไม่สำเร็จ:', driveResult.message);
+      }
+    } catch (driveErr) {
+      console.warn('บันทึกลง Drive ไม่สำเร็จ:', driveErr);
+    }
+
+    // ยังคงให้ผู้ใช้บันทึก/แชร์ไฟล์บนเครื่องได้เหมือนเดิม
+    // มือถือ: ใช้ Share Sheet ของเครื่อง (เลือก "บันทึกลง Files" ได้ตรงๆ) ถ้าเบราว์เซอร์รองรับ
+    // ถ้าไม่รองรับ (เช่น เปิดผ่าน LINE in-app browser บางเวอร์ชัน) จะ fallback ไปดาวน์โหลดแบบปกติ
+    const pdfBlob = pdf.output('blob');
+    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+    if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      try {
+        await navigator.share({
+          files: [pdfFile],
+          title: fileName,
+        });
+      } catch (shareErr) {
+        // ผู้ใช้กดยกเลิกการแชร์ ไม่ถือเป็นข้อผิดพลาด
+        console.warn('Share cancelled or failed:', shareErr);
+      }
+    } else {
+      pdf.save(fileName);
+    }
+
+    if (driveUrl) {
+      Swal.fire({
+        title: 'บันทึกลง Google Drive แล้ว',
+        html: `<a href="${driveUrl}" target="_blank" rel="noopener">เปิดไฟล์ใน Drive</a>`,
+        icon: 'success'
+      });
     }
   }
 
