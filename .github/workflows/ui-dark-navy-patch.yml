@@ -1,0 +1,299 @@
+name: Apply Dark Navy Glossy UI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ui-dark-navy-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch index.html UI only
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Replace the existing theme variables only; application logic is untouched.
+          s = re.sub(r':root\{.*?\n\}', ''':root{
+            --primary:#39d5ff;
+            --primary-dark:#12a9d2;
+            --dark:#07111f;
+            --bg:#06101d;
+            --card:#0d1b2e;
+            --text:#f4f8ff;
+            --muted:#9db0c8;
+            --border:rgba(255,255,255,.10);
+            --danger:#ff5d73;
+            --warning:#ffbd59;
+            --success:#36d399;
+            --blue:#42b7ff;
+            --purple:#a78bfa;
+            --shadow:0 18px 50px rgba(0,0,0,.35);
+          }''', s, count=1, flags=re.S)
+
+          css = r'''
+
+/* =====================================================
+   DARK NAVY GLOSSY UI — UI ONLY
+===================================================== */
+html,body{
+  background:
+    radial-gradient(circle at 15% 0%,rgba(38,137,190,.18),transparent 32%),
+    radial-gradient(circle at 90% 10%,rgba(78,70,180,.15),transparent 28%),
+    linear-gradient(145deg,#030a14 0%,#071525 48%,#08111e 100%);
+  color:var(--text);
+}
+
+body{min-height:100vh;}
+
+#loadingScreen{
+  background:
+    radial-gradient(circle at 50% 20%,rgba(57,213,255,.13),transparent 30%),
+    linear-gradient(145deg,#030914,#081a2d 55%,#040b15);
+  color:#fff;
+}
+
+.loading-box{
+  padding:34px 28px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(17,37,61,.88),rgba(5,16,29,.92));
+  box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
+}
+
+.spinner{
+  border-color:rgba(255,255,255,.12);
+  border-top-color:var(--primary);
+  box-shadow:0 0 25px rgba(57,213,255,.22);
+}
+
+.loading-text{color:#c7d6e8;}
+
+.card{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(145deg,rgba(18,39,64,.96),rgba(7,20,35,.96));
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 20px 55px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.055);
+  backdrop-filter:blur(18px);
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,255,255,.055),transparent 28%,transparent 70%,rgba(57,213,255,.025));
+}
+
+.header{position:relative;z-index:1;}
+
+h2,h3{color:#f5f9ff;}
+
+.profile-name{color:#fff;}
+.profile-role{color:#91a8c1;}
+.profile-avatar{border:2px solid rgba(57,213,255,.45);box-shadow:0 0 20px rgba(57,213,255,.12);}
+
+button{
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,#2dcdf5,#168dbd);
+  box-shadow:0 12px 28px rgba(25,174,221,.24),inset 0 1px 0 rgba(255,255,255,.25);
+}
+.btn-primary:hover{background:linear-gradient(135deg,#55ddff,#1ca7d7);}
+.btn-secondary{background:rgba(255,255,255,.075);color:#dbe9f7;border-color:rgba(255,255,255,.11);}
+.btn-danger{background:linear-gradient(135deg,#ff667b,#c93650);}
+.btn-warning{background:linear-gradient(135deg,#ffc866,#d18a22);color:#17202b;}
+.btn-success{background:linear-gradient(135deg,#3ce0a1,#15966b);}
+.btn-blue{background:linear-gradient(135deg,#4bbcff,#2878db);}
+.btn-purple{background:linear-gradient(135deg,#b399ff,#7653d9);}
+
+input,select,textarea{
+  color:#edf6ff;
+  background:rgba(3,13,25,.72);
+  border-color:rgba(255,255,255,.11);
+  box-shadow:inset 0 1px 8px rgba(0,0,0,.12);
+}
+input::placeholder,textarea::placeholder{color:#71869e;}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(57,213,255,.75);
+  box-shadow:0 0 0 3px rgba(57,213,255,.12),0 0 25px rgba(57,213,255,.06);
+}
+select option{background:#0b1a2c;color:#fff;}
+
+label{color:#dbe8f6;}
+
+.register-logo{
+  width:78px;height:78px;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:24px;
+  font-size:38px;
+  background:linear-gradient(145deg,#123b5a,#0b1b30);
+  border:1px solid rgba(57,213,255,.28);
+  box-shadow:0 15px 35px rgba(0,0,0,.3),0 0 28px rgba(57,213,255,.08),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.register-title{color:#f6fbff;}
+.register-subtitle{color:#8fa6bd;}
+
+.menu-card{
+  position:relative;
+  overflow:hidden;
+  min-height:120px;
+  color:#eaf5ff;
+  background:linear-gradient(145deg,rgba(17,40,65,.94),rgba(7,20,35,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 14px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.menu-card::after{
+  content:"";
+  position:absolute;
+  width:90px;height:90px;
+  right:-35px;top:-35px;
+  border-radius:50%;
+  background:rgba(57,213,255,.08);
+  filter:blur(4px);
+}
+.menu-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(57,213,255,.32);
+  box-shadow:0 20px 38px rgba(0,0,0,.34),0 0 28px rgba(57,213,255,.07);
+}
+.menu-card .icon{
+  width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0;
+  color:#62ddff;
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(57,213,255,.15),rgba(80,100,255,.08));
+  border:1px solid rgba(57,213,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+.menu-card .icon svg{width:26px;height:26px;stroke-width:1.8;}
+
+.summary-card{
+  color:#eaf5ff;
+  background:linear-gradient(145deg,rgba(16,37,61,.95),rgba(7,19,34,.96));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 13px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.summary-label{color:#8ea7c0;}
+.summary-number{color:#fff;}
+.summary-new{border-left-color:#42b7ff;}
+.summary-progress{border-left-color:#ffbd59;}
+.summary-parts{border-left-color:#a78bfa;}
+.summary-complete{border-left-color:#36d399;}
+
+.ticket-card{
+  background:linear-gradient(145deg,rgba(14,32,53,.94),rgba(6,18,32,.96));
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 12px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.045);
+}
+.ticket-no{color:#55d9ff;}
+.ticket-location{color:#f3f8ff;}
+.ticket-issue{color:#b9c9da;}
+.ticket-meta{color:#829ab3;}
+
+.badge{border:1px solid rgba(255,255,255,.07);}
+
+th{background:rgba(255,255,255,.06);color:#dceafa;}
+td{color:#bfd0e2;border-color:rgba(255,255,255,.08);}
+
+.photo-input{
+  border-color:rgba(57,213,255,.24);
+  background:rgba(4,16,29,.55);
+  color:#9db0c8;
+}
+
+.modal{background:rgba(0,4,10,.72);backdrop-filter:blur(7px);}
+.modal-box{
+  background:linear-gradient(145deg,#10253d,#071524);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.close-btn{background:rgba(255,255,255,.08);color:#dceafa;}
+
+#toast{background:#10253b;border:1px solid rgba(255,255,255,.1);}
+
+.empty{color:#8fa6bd;}
+.empty-icon{filter:drop-shadow(0 0 10px rgba(57,213,255,.12));}
+
+/* Admin areas: slightly stronger glossy separation */
+#dashboardSection .card,
+#staffSection .card,
+#stockSection .card,
+#requisitionSection .card,
+#settingsSection .card{border-color:rgba(57,213,255,.08);}
+
+@media(max-width:700px){
+  .menu-card{min-height:112px;}
+  .menu-card .icon{width:48px;height:48px;}
+}
+'''
+
+          marker='</style>'
+          if 'DARK NAVY GLOSSY UI — UI ONLY' not in s:
+              s=s.replace(marker,css+'\n'+marker,1)
+
+          # Add Lucide icons without changing the existing menu labels or application functions.
+          icon_script = r'''
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+(function(){
+  function applyModernIcons(){
+    if(!window.lucide) return;
+    document.querySelectorAll('.menu-card .icon').forEach(function(el){
+      var raw=(el.textContent||'').trim();
+      var icon='settings';
+      if(raw.indexOf('🔧')>=0) icon='wrench';
+      else if(raw.indexOf('🛠')>=0) icon='clipboard-check';
+      else if(raw.indexOf('👤')>=0) icon='users';
+      else if(raw.indexOf('📦')>=0) icon='boxes';
+      else if(raw.indexOf('📋')>=0) icon='file-text';
+      else if(raw.indexOf('⚙')>=0) icon='settings-2';
+      if(!el.querySelector('svg')){
+        el.innerHTML='<i data-lucide="'+icon+'"></i>';
+      }
+    });
+    lucide.createIcons({attrs:{'stroke-width':1.8}});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',applyModernIcons);
+  else applyModernIcons();
+  setTimeout(applyModernIcons,800);
+  setTimeout(applyModernIcons,1800);
+})();
+</script>
+'''
+          if 'lucide@latest/dist/umd/lucide.js' not in s:
+              s=s.replace('</body>',icon_script+'\n</body>',1)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Commit UI patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/ui-dark-navy-patch.yml
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "UI: Dark Navy Glossy modern icons"
+          git push
