@@ -1,310 +1,211 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Engineering System</title>
-    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        :root { --primary: #06C755; --dark: #2A2B2D; --bg: #F4F6F9; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
-        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 15px; }
-        label { font-weight: 600; display: block; margin-bottom: 6px; font-size: 14px; }
-        input, select, textarea, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
-        button { background: var(--primary); color: #fff; font-weight: bold; border: none; cursor: pointer; margin-top: 5px; }
-        button:disabled { background: #ccc; }
-        .btn-secondary { background: #6c757d; }
-        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .menu-card { background: #fff; padding: 18px; border-radius: 12px; text-align: center; border: 1px solid #eee; cursor: pointer; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        .ticket-item { border-left: 4px solid var(--primary); padding: 12px; background: #fafafa; margin-bottom: 10px; border-radius: 4px; }
-        .ticket-item.URGENT { border-left-color: #ff4757; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Maintenance System</title>
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen text-gray-800">
 
-    <!-- 1. LOADING SCREEN -->
-    <div id="loading" class="card" style="text-align: center;">
-        ⏳ กำลังยืนยันตัวตนผ่าน LINE...
-    </div>
+  <!-- 1. LOADING SCREEN (หน้ากำลังยืนยันตัวตน) -->
+  <div id="loading-screen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+    <p class="text-gray-600 text-sm font-medium">กำลังยืนยันตัวตนผ่าน LINE...</p>
+  </div>
 
-    <!-- 2. REGISTER FORM SECTION -->
-    <div id="registerSection" class="card" style="display:none;">
-        <h2>📝 ลงทะเบียนเข้าใช้งานครั้งแรก</h2>
-        <form id="regForm">
-            <div class="form-group">
-                <label>รหัสพนักงาน</label>
-                <input type="text" id="regEmpId" required placeholder="เช่น EMP-101">
-            </div>
-            <div class="form-group">
-                <label>ชื่อ-นามสกุล</label>
-                <input type="text" id="regFullName" required placeholder="นายสมชาย ใจดี">
-            </div>
-            <div class="form-group">
-                <label>แผนก / ตำแหน่ง</label>
-                <select id="regDept" required>
-                    <option value="HOUSEKEEPING">แม่บ้าน (Housekeeping)</option>
-                    <option value="FRONT_DESK">ต้อนรับ (Front Desk)</option>
-                    <option value="ENGINEERING">ช่างซ่อมบำรุง (Engineering)</option>
-                </select>
-            </div>
-            <button type="submit">บันทึกข้อมูลการลงทะเบียน</button>
-        </form>
-    </div>
-
-    <!-- 3. MAIN DASHBOARD SECTION -->
-    <div id="dashboardSection" style="display:none;">
-        <div class="card header">
-            <div>
-                <strong id="userProfileName">...</strong><br>
-                <small id="userDeptRole" style="color:#666;"></small>
-            </div>
-            <button onclick="location.reload()" style="width: auto; padding: 6px 12px; font-size: 12px;">🔄 รีเฟรช</button>
+  <!-- 2. REGISTER SCREEN (หน้าลงทะเบียนสำหรับพนักงานใหม่) -->
+  <div id="register-screen" class="hidden min-h-screen p-4 flex flex-col justify-center">
+    <div class="bg-white p-6 rounded-xl shadow-md max-w-md mx-auto w-full">
+      <h2 class="text-2xl font-bold text-center text-blue-600 mb-2">ลงทะเบียนใช้งาน</h2>
+      <p class="text-xs text-gray-500 text-center mb-6">กรุณากรอกข้อมูลพนักงานเพื่อเข้าสู่ระบบ Maintenance</p>
+      
+      <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4">
+        <input type="hidden" id="reg-line-id">
+        
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">รหัสพนักงาน (emp_id)</label>
+          <input type="text" id="reg-emp-id" required placeholder="เช่น EMP-001" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
 
-        <div class="grid-menu">
-            <div class="menu-card" onclick="showView('repairSection')">🔧<br>แจ้งซ่อมด่วน</div>
-            <div class="menu-card" onclick="showView('taskSection')" id="taskMenu">🛠️<br>ตารางงานซ่อม</div>
-            <div class="menu-card" onclick="showView('meterSection')" id="meterMenu">⚡<br>จดมิเตอร์น้ำ-ไฟ</div>
-            <div class="menu-card" onclick="alert('ระบบกำลังดึงข้อมูลรายงาน')">📊<br>รายงานสรุป</div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อ-นามสกุล (full_name)</label>
+          <input type="text" id="reg-full-name" required placeholder="เช่น สมชาย ใจดี" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">แผนก (department)</label>
+          <select id="reg-dept" required class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">-- เลือกแผนก --</option>
+            <option value="ENGINEERING">ENGINEERING (ช่างซ่อมบำรุง)</option>
+            <option value="HOUSEKEEPING">HOUSEKEEPING (แม่บ้าน)</option>
+            <option value="FRONT DESK">FRONT DESK (ต้อนรับ)</option>
+            <option value="ADMIN">ADMIN / MANAGEMENT</option>
+          </select>
+        </div>
+
+        <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg text-sm transition duration-200">
+          บันทึกข้อมูลลงทะเบียน
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. MAIN APP SCREEN (หน้าหลักเมื่อยืนยันตัวตนสำเร็จ) -->
+  <div id="main-app" class="hidden min-h-screen p-4 max-w-md mx-auto pb-20">
+    <!-- Header ข้อมูลผู้ใช้ -->
+    <div class="bg-blue-600 text-white p-4 rounded-xl shadow-md mb-4 flex items-center space-x-3">
+      <img id="user-picture" class="w-12 h-12 rounded-full border-2 border-white" src="https://via.placeholder.com/150" alt="Profile">
+      <div>
+        <h3 id="user-name" class="font-bold text-base">กำลังโหลด...</h3>
+        <p class="text-xs opacity-90"><span id="user-dept">-</span> | <span id="user-role" class="font-semibold bg-blue-800 px-1.5 py-0.5 rounded">-</span></p>
+        <p class="text-[10px] opacity-75 mt-0.5">ID: <span id="user-emp-id">-</span></p>
+      </div>
     </div>
 
-    <!-- 4. REPAIR FORM SECTION -->
-    <div id="repairSection" class="card" style="display:none;">
-        <div class="header">
-            <h3>🔧 ฟอร์มแจ้งซ่อมด่วน</h3>
-            <button onclick="showView('dashboardSection')" class="btn-secondary" style="width:auto; padding:5px 10px;">กลับ</button>
-        </div>
-        <form id="repairForm">
-            <div class="form-group">
-                <label>สถานที่ / ห้องพัก</label>
-                <select id="repLocation" required><option value="">-- โหลดสถานที่ --</option></select>
-            </div>
-            <div class="form-group">
-                <label>หมวดหมู่งาน</label>
-                <select id="repCategory" required>
-                    <option value="ELECTRICAL">ไฟฟ้า / แสงสว่าง</option>
-                    <option value="PLUMBING">ประปา / สุขภัณฑ์</option>
-                    <option value="HVAC">ระบบปรับอากาศ (แอร์)</option>
-                    <option value="FURNITURE">เฟอร์นิเจอร์ / อาคาร</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>ระดับความด่วน</label>
-                <select id="repPriority">
-                    <option value="NORMAL">ปกติ</option>
-                    <option value="URGENT">ด่วนมาก (แขกอยู่ในห้อง)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>อาการที่พบ / รายละเอียด</label>
-                <textarea id="repIssue" rows="3" required placeholder="ระบุอาการเสีย..."></textarea>
-            </div>
-            <button type="submit" id="btnSubmitRepair">ส่งรายการแจ้งซ่อม</button>
-        </form>
+    <!-- เมนูตามสิทธิ์ -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button class="bg-white p-4 rounded-xl shadow hover:shadow-md border border-gray-100 flex flex-col items-center justify-center text-center">
+        <span class="text-2xl mb-1">🔧</span>
+        <span class="text-xs font-medium text-gray-700">แจ้งซ่อมด่วน</span>
+      </button>
+
+      <button class="bg-white p-4 rounded-xl shadow hover:shadow-md border border-gray-100 flex flex-col items-center justify-center text-center">
+        <span class="text-2xl mb-1">📋</span>
+        <span class="text-xs font-medium text-gray-700">ติดตามงานซ่อม</span>
+      </button>
+
+      <button class="bg-white p-4 rounded-xl shadow hover:shadow-md border border-gray-100 flex flex-col items-center justify-center text-center">
+        <span class="text-2xl mb-1">⚡</span>
+        <span class="text-xs font-medium text-gray-700">จดมิเตอร์น้ำ-ไฟ</span>
+      </button>
+
+      <button class="bg-white p-4 rounded-xl shadow hover:shadow-md border border-gray-100 flex flex-col items-center justify-center text-center">
+        <span class="text-2xl mb-1">⏱️</span>
+        <span class="text-xs font-medium text-gray-700">ลงเวลาเข้ากะ</span>
+      </button>
     </div>
+  </div>
 
-    <!-- 5. TECHNICIAN TASK & CLOSE JOB SECTION -->
-    <div id="taskSection" class="card" style="display:none;">
-        <div class="header">
-            <h3>🛠️ รายการงานซ่อมค้าง</h3>
-            <button onclick="showView('dashboardSection')" class="btn-secondary" style="width:auto; padding:5px 10px;">กลับ</button>
-        </div>
-        <div id="taskList">กำลังโหลดงาน...</div>
-    </div>
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 🛑 1. ตั้งค่า LIFF ID และ GAS URL ให้ถูกต้อง
+    const LIFF_ID = "2010924055-ptu13GAx"; // เช่น 1657000000-xxxxxxx
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxMD85veg-AkAx4T6_2xEbGsHRrTD2mtqJYVBXN0gzpqfXKDWlUcgTchJ3uf3_HDn6y/exec"; // URL จาก New Deployment ของ GAS
 
-    <!-- 6. UTILITY METER SECTION -->
-    <div id="meterSection" class="card" style="display:none;">
-        <div class="header">
-            <h3>⚡ จดมิเตอร์ค่าน้ำ-ค่าไฟ</h3>
-            <button onclick="showView('dashboardSection')" class="btn-secondary" style="width:auto; padding:5px 10px;">กลับ</button>
-        </div>
-        <form id="meterForm">
-            <div class="form-group">
-                <label>ประเภทมิเตอร์</label>
-                <select id="meterType">
-                    <option value="ELECTRIC_MAIN">ไฟฟ้า (Main)</option>
-                    <option value="WATER_MAIN">ประปา (Main)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>ตัวเลขมิเตอร์ปัจจุบัน</label>
-                <input type="number" step="0.01" id="meterUnits" required placeholder="0.00">
-            </div>
-            <button type="submit">บันทึกข้อมูลมิเตอร์</button>
-        </form>
-    </div>
+    let currentUser = null;
 
-    <script>
-        // *** วาง Web App URL จาก Google Apps Script (Deploy) ที่นี่ ***
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxMD85veg-AkAx4T6_2xEbGsHRrTD2mtqJYVBXN0gzpqfXKDWlUcgTchJ3uf3_HDn6y/exec";
-        const LIFF_ID = "2010924055-ptu13GAx";
+    document.addEventListener("DOMContentLoaded", function() {
+      initLIFF();
+    });
 
-        let currentUser = null;
-        let globalData = {};
+    // 2. เริ่มต้นระบบ LIFF
+    async function initLIFF() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
 
-        // 1. LIFF INITIALIZATION
-        window.onload = function() {
-            liff.init({ liffId: LIFF_ID }).then(() => {
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    liff.getProfile().then(profile => {
-                        checkUserAuth(profile.userId);
-                    });
-                }
-            }).catch(err => alert("LIFF Init Error: " + err));
-        };
-
-        // 2. CHECK USER AUTHENTICATION
-        async function checkUserAuth(userId) {
-            const res = await fetch(`${GAS_URL}?action=checkUser&userId=${userId}`);
-            const user = await res.json();
-            
-            document.getElementById("loading").style.display = "none";
-
-            if (user.registered) {
-                currentUser = user;
-                currentUser.userId = userId;
-                document.getElementById("userProfileName").innerText = user.name + ` (${user.empId})`;
-                document.getElementById("userDeptRole").innerText = `${user.department} | Role: ${user.role}`;
-                
-                showView("dashboardSection");
-                loadInitialData();
-            } else {
-                currentUser = { userId: userId };
-                showView("registerSection");
-            }
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
         }
 
-        // 3. LOAD INITIAL DATA (Locations, Inventory, Tickets)
-        async function loadInitialData() {
-            const res = await fetch(`${GAS_URL}?action=getInitialData`);
-            globalData = await res.json();
+        const profile = await liff.getProfile();
+        document.getElementById("reg-line-id").value = profile.userId;
 
-            // Populate Locations Dropdown
-            const locSelect = document.getElementById("repLocation");
-            locSelect.innerHTML = '<option value="">-- เลือกสถานที่/ห้องพัก --</option>';
-            globalData.locations.forEach(loc => {
-                locSelect.innerHTML += `<option value="${loc.name}">${loc.name} (${loc.zone})</option>`;
-            });
+        // ตรวจสอบสิทธิ์กับ GAS ตามโครงสร้างชีต Users ใหม่
+        await checkUserRegistration(profile);
 
-            // Render Tech Task List
-            renderTaskList();
+      } catch (err) {
+        console.error("LIFF Init Error:", err);
+        showError("เกิดข้อผิดพลาดในการโหลด LIFF: " + err.message);
+      }
+    }
+
+    // 3. ดึงข้อมูล User จาก GAS (ชีต Users)
+    async function checkUserRegistration(profile) {
+      try {
+        const response = await fetch(`${GAS_WEBAPP_URL}?action=getUser&userId=${profile.userId}`);
+        const result = await response.json();
+
+        // ปิดหน้า Loading เสมอเมื่อได้ผลลัพธ์
+        hideLoading();
+
+        if (result.status === "success" && result.data && result.data.status === "ACTIVE") {
+          // หากพบข้อมูลผู้ใช้ และสถานะเป็น ACTIVE -> แสดงหน้าหลัก
+          currentUser = result.data;
+          renderMainApp(profile, result.data);
+        } else {
+          // หากยังไม่เคยลงทะเบียน หรือสิทธิ์ไม่ใช่ ACTIVE -> ไปหน้าลงทะเบียน
+          document.getElementById("register-screen").classList.remove("hidden");
         }
 
-        // 4. RENDER TASK LIST FOR TECHNICIANS
-        function renderTaskList() {
-            const container = document.getElementById("taskList");
-            if (!globalData.tickets || globalData.tickets.length === 0) {
-                container.innerHTML = "<p>🎉 ไม่มีงานซ่อมค้างในขณะนี้</p>";
-                return;
-            }
+      } catch (err) {
+        console.error("Fetch User Error:", err);
+        showError("ไม่สามารถเชื่อมต่อฐานข้อมูลได้: " + err.message);
+      }
+    }
 
-            container.innerHTML = "";
-            globalData.tickets.forEach(t => {
-                container.innerHTML += `
-                    <div class="ticket-item ${t.priority}">
-                        <strong>[${t.ticket_no}] ${t.location_name}</strong> <span class="badge">${t.priority}</span><br>
-                        <small>อาการ: ${t.issue} | โดย: ${t.reporter}</small>
-                        <button onclick="closeJobPrompt('${t.ticket_no}')" style="margin-top:8px; padding:6px; font-size:13px;">✅ ปิดงาน / เบิกอะไหล่</button>
-                    </div>
-                `;
-            });
-        }
+    // 4. บันทึกข้อมูลลงทะเบียนพนักงานใหม่
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึกข้อมูล...";
 
-        // 5. SUBMIT HANDLERS
-        document.getElementById("regForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const payload = {
-                action: "registerUser",
-                userId: currentUser.userId,
-                empId: document.getElementById("regEmpId").value,
-                fullName: document.getElementById("regFullName").value,
-                department: document.getElementById("regDept").value
-            };
-            await sendData(payload);
-            alert("ลงทะเบียนสำเร็จแล้ว!");
-            location.reload();
+      const payload = {
+        action: "registerUser",
+        line_user_id: document.getElementById("reg-line-id").value,
+        emp_id: document.getElementById("reg-emp-id").value.trim(),
+        full_name: document.getElementById("reg-full-name").value.trim(),
+        department: document.getElementById("reg-dept").value,
+        role: "STAFF" // กำหนด Role ตั้งต้นเป็น STAFF
+      };
+
+      try {
+        const res = await fetch(GAS_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
         });
+        const data = await res.json();
 
-        document.getElementById("repairForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            document.getElementById("btnSubmitRepair").disabled = true;
-            const payload = {
-                action: "createTicket",
-                locationName: document.getElementById("repLocation").value,
-                category: document.getElementById("repCategory").value,
-                priority: document.getElementById("repPriority").value,
-                issue: document.getElementById("repIssue").value,
-                reporter: currentUser.name
-            };
-            await sendData(payload);
-            alert("บันทึกการแจ้งซ่อมเรียบร้อยแล้ว!");
-            liff.closeWindow();
-        });
-
-        document.getElementById("meterForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const payload = {
-                action: "recordMeter",
-                meterType: document.getElementById("meterType").value,
-                units: document.getElementById("meterUnits").value,
-                recorderName: currentUser.name
-            };
-            const res = await sendData(payload);
-            alert(`บันทึกเรียบร้อย! หน่วยที่ใช้ไป: ${res.usedUnits || 0}`);
-            showView("dashboardSection");
-        });
-
-        // 6. CLOSE JOB & INVENTORY DEDUCTION PROMPT
-        async function closeJobPrompt(ticketNo) {
-            const notes = prompt("ระบุการแก้ไขงานซ่อม:");
-            if (notes === null) return;
-
-            let itemCode = "";
-            let qty = 0;
-
-            if (globalData.inventory && globalData.inventory.length > 0) {
-                const useStock = confirm("มีการเบิกอะไหล่จากคลังหรือไม่?");
-                if (useStock) {
-                    itemCode = prompt("กรอกรหัสอะไหล่ (item_code):");
-                    qty = prompt("กรอกจำนวนที่เบิกใช้:");
-                }
-            }
-
-            const payload = {
-                action: "closeTicket",
-                ticketNo: ticketNo,
-                technician: currentUser.name,
-                notes: notes,
-                usedItemCode: itemCode,
-                usedQty: qty
-            };
-
-            await sendData(payload);
-            alert("ปิดงานเรียบร้อยแล้ว!");
-            loadInitialData();
+        if (data.status === "success") {
+          alert("ลงทะเบียนสำเร็จแล้ว!");
+          location.reload(); // รีเฟรชเข้าสู่ระบบใหม่
+        } else {
+          alert("เกิดข้อผิดพลาด: " + data.message);
+          btn.disabled = false;
+          btn.innerText = "บันทึกข้อมูลลงทะเบียน";
         }
+      } catch (err) {
+        alert("ไม่สามารถบันทึกข้อมูลได้: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "บันทึกข้อมูลลงทะเบียน";
+      }
+    }
 
-        // HELPER FUNCTIONS
-        async function sendData(payload) {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            return await res.json();
-        }
+    // UI Helpers
+    function renderMainApp(lineProfile, userData) {
+      document.getElementById("user-picture").src = lineProfile.pictureUrl || "https://via.placeholder.com/150";
+      document.getElementById("user-name").innerText = userData.full_name;
+      document.getElementById("user-dept").innerText = userData.department;
+      document.getElementById("user-role").innerText = userData.role;
+      document.getElementById("user-emp-id").innerText = userData.emp_id;
 
-        function showView(viewId) {
-            ["registerSection", "dashboardSection", "repairSection", "taskSection", "meterSection"].forEach(id => {
-                document.getElementById(id).style.display = "none";
-            });
-            document.getElementById(viewId).style.display = "block";
-        }
-    </script>
+      document.getElementById("main-app").classList.remove("hidden");
+    }
+
+    function hideLoading() {
+      document.getElementById("loading-screen").classList.add("hidden");
+    }
+
+    function showError(msg) {
+      hideLoading();
+      alert(msg);
+    }
+  </script>
 </body>
 </html>
