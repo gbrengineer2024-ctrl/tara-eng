@@ -1,0 +1,134 @@
+name: Fix ADMIN menu visibility
+
+on:
+  push:
+    paths:
+      - 'index.html'
+      - '.github/workflows/fix-admin-menus.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-admin-menu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch ADMIN permission handling
+        shell: python3 {0}
+        run: |
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          marker = '/* TARA_ADMIN_PERMISSION_PATCH_V2 */'
+          if marker in s:
+              print('ADMIN permission patch already installed')
+              raise SystemExit(0)
+
+          patch = r'''
+<script>
+/* TARA_ADMIN_PERMISSION_PATCH_V2 */
+(function(){
+  const ADMIN_ROLES = ['ADMIN','ADMINISTRATOR'];
+  const MODULE_PERMISSION_MAP = {
+    inventory: ['VIEW_INVENTORY','VIEW_STOCK'],
+    requisitions: ['VIEW_REQUISITIONS','VIEW_PENDING_PARTS'],
+    staff: ['VIEW_STAFF','MANAGE_STAFF'],
+    settings: ['VIEW_SETTINGS','MANAGE_SETTINGS','VIEW_DEPARTMENTS','MANAGE_DEPARTMENTS']
+  };
+
+  function norm(v){ return String(v == null ? '' : v).trim().toUpperCase(); }
+
+  function roleFromUser(){
+    const u = window.currentUser || {};
+    const sd = window.systemData || {};
+    const candidates = [
+      u.role, u.Role, u.user_role, u.userRole, u.permission_role,
+      sd.user && (sd.user.role || sd.user.Role || sd.user.user_role),
+      sd.currentUser && (sd.currentUser.role || sd.currentUser.Role)
+    ];
+    for(const v of candidates){
+      if(norm(v)) return norm(v);
+    }
+    return '';
+  }
+
+  function adminNow(){
+    const u = window.currentUser || {};
+    const sd = window.systemData || {};
+    return ADMIN_ROLES.includes(roleFromUser()) ||
+      u.isAdmin === true || u.is_admin === true ||
+      sd.isAdmin === true || sd.is_admin === true ||
+      (sd.permissions && (sd.permissions.ADMIN === true || norm(sd.permissions.role) === 'ADMIN'));
+  }
+
+  function permissionNow(key){
+    if(adminNow()) return true;
+    const p = (window.systemData || {}).permissions || {};
+    if(p[key] === true) return true;
+    if(p[norm(key)] === true) return true;
+    return false;
+  }
+
+  function showAdminMenu(){
+    const menu = document.getElementById('adminMenu');
+    if(!menu) return;
+    if(adminNow() ||
+       permissionNow('VIEW_STAFF') ||
+       permissionNow('VIEW_STOCK') ||
+       permissionNow('VIEW_INVENTORY') ||
+       permissionNow('VIEW_REQUISITIONS') ||
+       permissionNow('VIEW_PENDING_PARTS') ||
+       permissionNow('VIEW_SETTINGS')){
+      menu.classList.remove('hidden');
+    }
+  }
+
+  function patchRuntime(){
+    showAdminMenu();
+    const role = roleFromUser();
+    const badge = document.getElementById('userDeptRole');
+    if(badge && role) {
+      const txt = badge.textContent || '';
+      if(!txt.toUpperCase().includes(role)) badge.textContent = txt.replace(/\s*•.*$/, '') + ' • ' + role;
+    }
+  }
+
+  window.taraIsAdmin = adminNow;
+  window.taraHasPermission = permissionNow;
+  window.taraAdminPermissionMap = MODULE_PERMISSION_MAP;
+
+  const oldApply = window.applyPermissions;
+  window.applyPermissions = function(){
+    try{ if(typeof oldApply === 'function') oldApply.apply(this, arguments); }catch(e){ console.warn(e); }
+    patchRuntime();
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(patchRuntime, 50);
+    setTimeout(patchRuntime, 500);
+    setTimeout(patchRuntime, 1500);
+  });
+  setInterval(patchRuntime, 2000);
+})();
+</script>
+'''
+
+          s = s.replace('</body>', patch + '\n</body>', 1)
+          p.write_text(s, encoding='utf-8')
+
+      - name: Commit patched index.html
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No index changes"
+            exit 0
+          fi
+          git commit -m "Fix ADMIN menu visibility and permission mapping"
+          git push
