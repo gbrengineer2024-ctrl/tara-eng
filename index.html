@@ -793,12 +793,15 @@ hr {
 
 <script>
 
-
 /* =====================================================
-   LIFF
+   CONFIG
+   ---------------------------------------------------
+   SCRIPT_URL ต้องเป็น URL ของ Google Apps Script
+   ที่ Deploy เป็น "Web app" (Execute as: Me,
+   Who has access: Anyone), ไม่ใช่ URL ของสคริปต์แก้ไข
 ===================================================== */
-<script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNzfm0JsT4fLUtdf0Bqr2oG8O6D78WKqkS-nwXwARrL17gE9BzzdVH2EefDdJdqnB6/exec';
+
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAXub6KX_MwJQ6JWoBahbqrARci0zUS8wEXgSxhJA1n48Qz-YRsiw8DN7RfzI-tbX3/exec';
 
 const LIFF_ID = "2010924055-ptu13GAx";
 
@@ -811,7 +814,6 @@ let globalData = {
   requisitions: [],
   departments: []
 };
-</script>
 
 
 /* =====================================================
@@ -2263,136 +2265,101 @@ function renderSettings() {
 
 /* =====================================================
    SERVER CALL
+   ---------------------------------------------------
+   เดิมใช้ google.script.run ซึ่งทำงานได้เฉพาะตอนไฟล์นี้
+   ถูก serve จาก Google Apps Script (HtmlService) เท่านั้น
+   เมื่อย้ายมาโฮสต์บน GitHub Pages (static hosting) จะไม่มี
+   `google` object ให้เรียกใช้ ต้องยิง HTTP request ไปที่
+   Web App URL ของ Apps Script (SCRIPT_URL) แทน โดยฝั่ง
+   Apps Script ต้องมีฟังก์ชัน doPost(e) คอยรับและ route
+   ไปยังฟังก์ชันเดิมตาม action ที่ส่งมา (ตัวอย่างท้ายไฟล์)
 ===================================================== */
 
-function runServer(
+const VALID_ACTIONS = [
+  "getUser",
+  "getInitialData",
+  "registerUser",
+  "createTicket",
+  "updateTicketStatus",
+  "closeTicket",
+  "createPendingPartsPDF",
+  "updateStaff",
+  "getSettings"
+];
+
+
+async function runServer(
   action,
   data
 ) {
 
-  return new Promise(
-    function(resolve, reject) {
+  if (
+    !VALID_ACTIONS.includes(action)
+  ) {
 
-      if (
-        typeof google ===
-        "undefined" ||
-        !google.script ||
-        !google.script.run
-      ) {
-
-        reject(
-          new Error(
-            "ไม่สามารถเชื่อมต่อ Google Apps Script"
-          )
-        );
-
-        return;
-      }
+    throw new Error(
+      "Unknown action: " +
+      action
+    );
+  }
 
 
-      const runner =
-        google.script.run
-          .withSuccessHandler(
-            resolve
-          )
-          .withFailureHandler(
-            reject
-          );
+  let response;
+
+  try {
+
+    response =
+      await fetch(
+        SCRIPT_URL,
+        {
+          method: "POST",
+          // ใช้ text/plain เพื่อเลี่ยง CORS preflight
+          // ที่ Apps Script Web App ไม่รองรับ
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: action,
+            data: data
+          })
+        }
+      );
+
+  } catch (err) {
+
+    throw new Error(
+      "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " +
+      err.message
+    );
+  }
 
 
-      switch (action) {
+  if (!response.ok) {
 
-        case "getUser":
-
-          runner.getUser(
-            data.userId
-          );
-
-          break;
-
-
-        case "getInitialData":
-
-          runner.getInitialData(
-            data.userId
-          );
-
-          break;
+    throw new Error(
+      "เซิร์ฟเวอร์ตอบกลับผิดพลาด (" +
+      response.status +
+      ")"
+    );
+  }
 
 
-        case "registerUser":
+  let json;
 
-          runner.registerUser(
-            data
-          );
+  try {
 
-          break;
+    json = await response.json();
 
+  } catch (err) {
 
-        case "createTicket":
-
-          runner.createTicket(
-            data
-          );
-
-          break;
+    throw new Error(
+      "อ่านข้อมูลจากเซิร์ฟเวอร์ไม่สำเร็จ"
+    );
+  }
 
 
-        case "updateTicketStatus":
-
-          runner.updateTicketStatus(
-            data
-          );
-
-          break;
-
-
-        case "closeTicket":
-
-          runner.closeTicket(
-            data
-          );
-
-          break;
-
-
-        case "createPendingPartsPDF":
-
-          runner.createPendingPartsPDF(
-            data
-          );
-
-          break;
-
-
-        case "updateStaff":
-
-          runner.updateStaff(
-            data
-          );
-
-          break;
-
-
-        case "getSettings":
-
-          runner.getSettings();
-
-          break;
-
-
-        default:
-
-          reject(
-            new Error(
-              "Unknown action: " +
-              action
-            )
-          );
-      }
-
-    }
-  );
+  return json;
 }
 
 
