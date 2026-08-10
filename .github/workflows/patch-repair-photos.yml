@@ -1,0 +1,45 @@
+name: Patch repair photo upload
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'feat: enable repair photo upload'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old="""document.getElementById('repairForm').addEventListener('submit',async e=>{e.preventDefault();const b=btnSubmitRepair;b.disabled=true;try{const r=await runServer('createTicket',{line_user_id:currentUser.userId,location:repLocation.value.trim(),locationName:repLocation.value.trim(),category:repCategory.value,priority:repPriority.value,issue:repIssue.value.trim()});if(r.status!=='success')throw new Error(r.message||'ส่งรายการไม่สำเร็จ');toast('แจ้งซ่อมสำเร็จ #'+(r.ticketNo||''),'success');e.target.reset();photoPreview.innerHTML='';await loadInitialData()}catch(x){toast(x.message,'error')}finally{b.disabled=false}});\n['repPhotos','repCamera'].forEach(id=>document.getElementById(id).addEventListener('change',function(){photoPreview.innerHTML='';Array.from(this.files||[]).slice(0,4).forEach(f=>{if(!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=e=>{const im=document.createElement('img');im.src=e.target.result;photoPreview.appendChild(im)};r.readAsDataURL(f)})}));"""
+          new="""let repairPhotos=[];\nfunction renderRepairPhotos(){photoPreview.innerHTML='';repairPhotos.forEach((x,i)=>{const wrap=document.createElement('div');wrap.style.position='relative';const im=document.createElement('img');im.src=x.data;im.title=x.name;const del=document.createElement('button');del.type='button';del.textContent='×';del.className='btn-danger';del.style.cssText='position:absolute;right:3px;top:3px;width:28px;height:28px;padding:0;border-radius:50%;font-size:18px;line-height:1';del.onclick=()=>{repairPhotos.splice(i,1);renderRepairPhotos()};wrap.appendChild(im);wrap.appendChild(del);photoPreview.appendChild(wrap)});if(repairPhotos.length){const n=document.createElement('div');n.style.cssText='grid-column:1/-1;font-size:12px;color:#9fb1c7';n.textContent=`แนบรูปแล้ว ${repairPhotos.length}/4 รูป`;photoPreview.appendChild(n)}}\nfunction compressRepairImage(file,maxW=1280,quality=.78){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const scale=Math.min(1,maxW/im.width);const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve({name:file.name,type:'image/jpeg',data:c.toDataURL('image/jpeg',quality)})};im.onerror=reject;im.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}\nasync function addRepairFiles(files){for(const f of Array.from(files||[])){if(repairPhotos.length>=4)break;if(!f.type.startsWith('image/'))continue;try{repairPhotos.push(await compressRepairImage(f));renderRepairPhotos()}catch(e){console.error(e)}}}\n['repPhotos','repCamera'].forEach(id=>document.getElementById(id).addEventListener('change',async function(){await addRepairFiles(this.files);this.value=''}));\ndocument.getElementById('repairForm').addEventListener('submit',async e=>{e.preventDefault();const b=btnSubmitRepair;b.disabled=true;try{const r=await runServer('createTicket',{line_user_id:currentUser.userId,location:repLocation.value.trim(),locationName:repLocation.value.trim(),category:repCategory.value,priority:repPriority.value,issue:repIssue.value.trim(),photos:repairPhotos});if(r.status!=='success')throw new Error(r.message||'ส่งรายการไม่สำเร็จ');toast('แจ้งซ่อมสำเร็จ #'+(r.ticketNo||''),'success');e.target.reset();repairPhotos=[];renderRepairPhotos();await loadInitialData()}catch(x){toast(x.message,'error')}finally{b.disabled=false}});"""
+          if old not in s:
+              raise SystemExit('target block not found')
+          s=s.replace(old,new,1)
+          old2="""function ticketCardHtml(t){const s=String(t.status||'NEW').toUpperCase();const sc={NEW:'badge-new',IN_PROGRESS:'badge-progress',PENDING_PARTS:'badge-parts',COMPLETED:'badge-completed',CANCELLED:'badge-cancelled'}[s]||'';return `<div class=\"ticket-card\"><div class=\"ticket-top\"><div><div class=\"ticket-no\">${esc(t.ticket_no||'-')}</div><div class=\"ticket-location\">📍 ${esc(t.location||'-')}</div></div><span class=\"badge ${sc}\">${esc(s)}</span></div><div class=\"ticket-issue\">${esc(t.issue||'-')}</div><div class=\"ticket-meta\"><div>👤 ${esc(t.reporter||'-')}</div><div>🔧 ${esc(t.technician||'-')}</div><div>🏢 ${esc(t.department||'-')}</div><div>🕒 ${esc(formatDateValue(t.created_at))}</div></div><div class=\"ticket-actions\"><button class=\"btn-secondary\" onclick=\"viewTicket('${escAttr(t.ticket_no)}')\">รายละเอียด</button>${ticketActionButtons(t)}</div></div>`}"""
+          new2="""function ticketCardHtml(t){const s=String(t.status||'NEW').toUpperCase();const sc={NEW:'badge-new',IN_PROGRESS:'badge-progress',PENDING_PARTS:'badge-parts',COMPLETED:'badge-completed',CANCELLED:'badge-cancelled'}[s]||'';const photos=Array.isArray(t.photo_urls)?t.photo_urls:[];return `<div class=\"ticket-card\"><div class=\"ticket-top\"><div><div class=\"ticket-no\">${esc(t.ticket_no||'-')}</div><div class=\"ticket-location\">📍 ${esc(t.location||'-')}</div></div><span class=\"badge ${sc}\">${esc(s)}</span></div><div class=\"ticket-issue\">${esc(t.issue||'-')}</div>${photos.length?`<div class=\"photo-preview\">${photos.slice(0,4).map(u=>`<a href=\"${escAttr(u)}\" target=\"_blank\"><img src=\"${escAttr(u)}\" loading=\"lazy\"></a>`).join('')}</div>`:''}<div class=\"ticket-meta\"><div>👤 ${esc(t.reporter||'-')}</div><div>🔧 ${esc(t.technician||'-')}</div><div>🏢 ${esc(t.department||'-')}</div><div>🕒 ${esc(formatDateValue(t.created_at))}</div></div><div class=\"ticket-actions\"><button class=\"btn-secondary\" onclick=\"viewTicket('${escAttr(t.ticket_no)}')\">รายละเอียด</button>${ticketActionButtons(t)}</div></div>`}"""
+          if old2 in s: s=s.replace(old2,new2,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patched file
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'feat: enable repair photo upload'
+          git push
+      - name: Remove patch workflow
+        if: success()
+        run: |
+          rm -f .github/workflows/patch-repair-photos.yml
+          git add .github/workflows/patch-repair-photos.yml
+          git commit -m 'chore: remove temporary patch workflow' || true
+          git push || true
