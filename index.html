@@ -12,7 +12,7 @@
 <body>
 <div id="loadingScreen"><div class="loading-box"><div class="spinner"></div><div id="loadingText">⏳ กำลังยืนยันตัวตนผ่าน LINE...</div></div></div>
 <div id="app" class="hidden">
-<section id="registerSection" class="hidden"><div class="card"><h3 style="text-align:center">🏨 Hotel Engineering</h3><p class="section-note" style="text-align:center">ลงทะเบียนเพื่อเข้าใช้งานระบบ</p><form id="regForm"><div class="form-group"><label>รหัสพนักงาน</label><input id="regEmpId" required placeholder="เช่น EN040"></div><div class="form-group"><label>ชื่อ-นามสกุล</label><input id="regFullName" required></div><div class="form-group"><label>แผนก</label><select id="regDept" required><option value="">-- เลือกแผนก --</option></select></div><button class="btn-primary">ลงทะเบียนและเข้าใช้งาน</button></form></div></section>
+<section id="registerSection" class="hidden"><div class="card"><h3 style="text-align:center">🏨Tara Work Order</h3><p class="section-note" style="text-align:center">ลงทะเบียนเพื่อเข้าใช้งานระบบ</p><form id="regForm"><div class="form-group"><label>รหัสพนักงาน</label><input id="regEmpId" required placeholder="เช่น EN040"></div><div class="form-group"><label>ชื่อ-นามสกุล</label><input id="regFullName" required></div><div class="form-group"><label>แผนก</label><select id="regDept" required><option value="">-- เลือกแผนก --</option></select></div><button class="btn-primary">ลงทะเบียนและเข้าใช้งาน</button></form></div></section>
 <section id="dashboardSection" class="view hidden">
 <div class="header"><div class="header-user"><img id="userProfilePicture" class="profile-avatar"><div><div id="userProfileName" class="profile-name">...</div><div id="userDeptRole" class="profile-role">...</div></div></div><button class="btn-secondary small-btn" onclick="reloadSystem()">🔄</button></div>
 <div class="summary-grid"><div class="summary-card"><div class="summary-label">งานใหม่</div><div id="sumNew" class="summary-number">0</div></div><div class="summary-card"><div class="summary-label">กำลังดำเนินการ</div><div id="sumProgress" class="summary-number">0</div></div><div class="summary-card"><div class="summary-label">รออะไหล่</div><div id="sumParts" class="summary-number">0</div></div><div class="summary-card"><div class="summary-label">เสร็จแล้ว</div><div id="sumComplete" class="summary-number">0</div></div></div>
@@ -42,25 +42,8 @@ async function initSystem(){try{setLoading('⏳ กำลังเชื่อ�
 async function runServer(action,data){const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,data:data||{}})});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error('API ไม่ได้ส่ง JSON กลับมา')}}
 async function checkUserAuth(){try{setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');const r=await runServer('getUser',{userId:currentUser.userId});if(r.status==='APPROVED'||(r.status==='success'&&r.registered)){currentUser=Object.assign({},currentUser,r.data||r.user||{});await loadInitialData();return}if(r.status==='NOT_REGISTERED'){showRegister();return}throw new Error(r.message||'ไม่สามารถตรวจสอบบัญชีได้')}catch(e){showFatalError(e.message)}}
 async function loadInitialData(){try{setLoading('⏳ กำลังโหลดข้อมูลระบบ...');const r=await runServer('getInitialData',{userId:currentUser.userId});if(r.status!=='success')throw new Error(r.message||'โหลดข้อมูลไม่สำเร็จ');systemData=Object.assign(systemData,r);if(r.user)currentUser=Object.assign({},currentUser,r.user);hideAllViews();updateHeader();updateSummary();renderDashboardTickets();applyPermissions();populateDepartmentOptions();document.getElementById('app').classList.remove('hidden');document.getElementById('loadingScreen').classList.add('hidden');showView('dashboardSection')}catch(e){showFatalError(e.message)}}
-function populateDepartmentOptions(){
-  const defaultDepartments = [
-    'ENGINEERING', 'HOUSEKEEPING', 'FRONT OFFICE', 'FOOD & BEVERAGE',
-    'KITCHEN', 'SECURITY', 'HUMAN RESOURCES', 'ACCOUNTING',
-    'SALES & MARKETING', 'PURCHASING', 'BANQUET', 'SPA', 'OTHER'
-  ];
-  const list = (systemData && systemData.departments && systemData.departments.length) 
-    ? systemData.departments 
-    : defaultDepartments;
-  const sel = document.getElementById('regDept');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">-- เลือกแผนก --</option>' + 
-    list.map(d => `<option value="${escAttr(d)}">${esc(d)}</option>`).join('');
-  if (current) sel.value = current;
-}
-
-function showRegister(){document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');hideAllViews();document.getElementById('registerSection').classList.remove('hidden');runServer('getInitialData',{userId:currentUser.userId}).then(r=>{if(r&&r.departments){systemData.departments=r.departments;populateDepartmentOptions()}}).catch(()=>{})}
-function showRegister(){document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');hideAllViews();document.getElementById('registerSection').classList.remove('hidden');runServer('getInitialData',{userId:currentUser.userId}).then(r=>{if(r&&r.departments){systemData.departments=r.departments;populateDepartmentOptions()}}).catch(()=>{})}
+function populateDepartmentOptions(){const defaultDepartments=['ENGINEERING','HOUSEKEEPING','FRONT OFFICE','FOOD & BEVERAGE','KITCHEN','SECURITY','HUMAN RESOURCES','ACCOUNTING','SALES & MARKETING','PURCHASING','BANQUET','SPA','OTHER'];const list=(systemData&&systemData.departments&&systemData.departments.length)?systemData.departments:defaultDepartments;const sel=document.getElementById('regDept');if(!sel)return;const current=sel.value;sel.innerHTML='<option value="">-- เลือกแผนก --</option>'+list.map(d=>`<option value="${escAttr(d)}">${esc(d)}</option>`).join('');if(current)sel.value=current}
+function showRegister(){document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');hideAllViews();document.getElementById('registerSection').classList.remove('hidden');populateDepartmentOptions();runServer('getInitialData',{userId:currentUser.userId}).then(r=>{if(r&&r.departments){systemData.departments=r.departments;populateDepartmentOptions()}}).catch(()=>{})}
 document.getElementById('regForm').addEventListener('submit',async e=>{e.preventDefault();try{const r=await runServer('registerUser',{line_user_id:currentUser.userId,emp_id:regEmpId.value.trim().toUpperCase(),full_name:regFullName.value.trim(),department:regDept.value.trim().toUpperCase()});if(r.status!=='success')throw new Error(r.message||'ลงทะเบียนไม่สำเร็จ');toast('ลงทะเบียนสำเร็จ','success');await checkUserAuth()}catch(x){toast(x.message,'error')}});
 function updateHeader(){const name=currentUser.fullName||currentUser.full_name||currentUser.displayName||'ผู้ใช้งาน';const dept=currentUser.dept||currentUser.department||'-';const role=String(currentUser.role||'REPORTER').toUpperCase();userProfileName.textContent=name;userDeptRole.textContent=dept+' • '+role;if(currentUser.pictureUrl)userProfilePicture.src=currentUser.pictureUrl}
 function isAdmin(){const role=String(currentUser.role||'').toUpperCase();return role==='ADMIN'||role==='ADMINISTRATOR'||currentUser.isAdmin===true||currentUser.is_admin===true||systemData.permissions?.ADMIN===true}
