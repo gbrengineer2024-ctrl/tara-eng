@@ -40,30 +40,7 @@ let currentUser=null,currentProfile=null;let systemData={tickets:[],summary:{},i
 window.addEventListener('load',initSystem);
 async function initSystem(){try{setLoading('⏳ กำลังเชื่อมต่อ LINE...');await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}setLoading('⏳ กำลังอ่านข้อมูล LINE...');currentProfile=await liff.getProfile();currentUser={userId:currentProfile.userId,displayName:currentProfile.displayName,pictureUrl:currentProfile.pictureUrl||''};await checkUserAuth()}catch(e){showFatalError(e.message)}}
 async function runServer(action,data){const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,data:data||{}})});const t=await r.text();try{return JSON.parse(t)}catch(e){throw new Error('API ไม่ได้ส่ง JSON กลับมา')}}
-async function checkUserAuth() {
-  try {
-    setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
-    const r = await runServer('getUser', { userId: currentUser.userId });
-
-    // 1. ถ้าลงทะเบียน/อนุมัติแล้ว -> เข้าใช้งานระบบ
-    if (r.status === 'APPROVED' || (r.status === 'success' && r.registered)) {
-      currentUser = Object.assign({}, currentUser, r.data || r.user || {});
-      await loadInitialData();
-      return;
-    }
-
-    // 2. ถ้ายังไม่ได้ลงทะเบียน (เช็คทั้ง NOT_REGISTERED และ USER_NOT_FOUND) -> ไปหน้าลงทะเบียน
-    if (r.status === 'NOT_REGISTERED' || r.message === 'USER_NOT_FOUND' || r.registered === false) {
-      showRegister();
-      return;
-    }
-
-    // 3. Error อื่นๆ
-    throw new Error(r.message || 'ไม่สามารถตรวจสอบบัญชีได้');
-  } catch (e) {
-    showFatalError(e.message);
-  }
-}
+async function checkUserAuth(){try{setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');const r=await runServer('getUser',{userId:currentUser.userId});if(r.status==='APPROVED'||(r.status==='success'&&r.registered)){currentUser=Object.assign({},currentUser,r.data||r.user||{});await loadInitialData();return}if(r.status==='NOT_REGISTERED'){showRegister();return}throw new Error(r.message||'ไม่สามารถตรวจสอบบัญชีได้')}catch(e){showFatalError(e.message)}}
 async function loadInitialData(){try{setLoading('⏳ กำลังโหลดข้อมูลระบบ...');const r=await runServer('getInitialData',{userId:currentUser.userId});if(r.status!=='success')throw new Error(r.message||'โหลดข้อมูลไม่สำเร็จ');systemData=Object.assign(systemData,r);if(r.user)currentUser=Object.assign({},currentUser,r.user);hideAllViews();updateHeader();updateSummary();renderDashboardTickets();applyPermissions();populateDepartmentOptions();document.getElementById('app').classList.remove('hidden');document.getElementById('loadingScreen').classList.add('hidden');showView('dashboardSection')}catch(e){showFatalError(e.message)}}
 function populateDepartmentOptions(){const list=systemData.departments||(systemData.settings&&systemData.settings.DEPARTMENTS_JSON)||[];const sel=document.getElementById('regDept');if(!sel||!Array.isArray(list)||!list.length)return;const current=sel.value;sel.innerHTML='<option value="">-- เลือกแผนก --</option>'+list.map(d=>`<option value="${escAttr(d)}">${esc(d)}</option>`).join('');if(current)sel.value=current}
 function showRegister(){document.getElementById('loadingScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');hideAllViews();document.getElementById('registerSection').classList.remove('hidden');runServer('getInitialData',{userId:currentUser.userId}).then(r=>{if(r&&r.departments){systemData.departments=r.departments;populateDepartmentOptions()}}).catch(()=>{})}
