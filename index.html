@@ -35,7 +35,7 @@
 <div id="modal" class="modal hidden"><div class="modal-box"><div class="modal-header"><strong id="modalTitle">รายละเอียด</strong><button class="close-btn" onclick="closeModal()">✕</button></div><div id="modalBody"></div></div></div><div id="toast"></div>
 <script>
 const LIFF_ID='2010924055-ptu13GAx';
-const API_URL='https://script.google.com/macros/s/AKfycby7pN4SmwzEaOLidL2VARMRY1O2-kmWiKzLgGT9MayzqLBqKFNCLkgmGq6l2GRwBS7T/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbyodXqhIybsNfe-aLiPwUEybPmMkDX3HOy7bp4suxdF8n7C4gw8scGWaLo6gevZyE5q/exec';
 let currentUser=null,currentProfile=null;let systemData={tickets:[],summary:{},inventory:[],staff:[],requisitions:[],settings:{},permissions:{}};
 window.addEventListener('load',initSystem);
 async function initSystem(){try{setLoading('⏳ กำลังเชื่อมต่อ LINE...');await liff.init({liffId:LIFF_ID});if(!liff.isLoggedIn()){liff.login();return}setLoading('⏳ กำลังอ่านข้อมูล LINE...');currentProfile=await liff.getProfile();currentUser={userId:currentProfile.userId,displayName:currentProfile.displayName,pictureUrl:currentProfile.pictureUrl||''};await checkUserAuth()}catch(e){showFatalError(e.message)}}
