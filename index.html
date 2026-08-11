@@ -3,597 +3,710 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Engineering System</title>
+<title>Tara Engineering</title>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 :root{
---bg:#061426;
---card:#0b1f38;
---card2:#102b4a;
---line:rgba(255,255,255,.12);
---text:#f4f8ff;
---muted:#9fb1c7;
---blue:#3f8cff;
---cyan:#55d6ff;
---green:#35d39a;
---orange:#ffb454;
---purple:#a77bff;
---red:#ff6577;
---shadow:0 18px 50px rgba(0,0,0,.32)
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#7d8798;
+  --line:#e7ebf2;
+  --blue:#2563eb;
+  --blue2:#3b82f6;
+  --green:#16a34a;
+  --orange:#f59e0b;
+  --red:#ef4444;
+  --purple:#7c3aed;
+  --shadow:0 8px 28px rgba(31,41,55,.08);
 }
 
 *{box-sizing:border-box}
 
 html,body{
-margin:0;
-min-height:100%;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-color:var(--text);
-background:
-radial-gradient(circle at 15% 0%,rgba(63,140,255,.18),transparent 34%),
-linear-gradient(135deg,#04101f,#071a30 48%,#061426);
-background-attachment:fixed
+  margin:0;
+  min-height:100%;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-body{padding:10px}
+body{padding:0}
 
 button,input,select,textarea{font:inherit}
-
 button{cursor:pointer}
 
 .hidden{display:none!important}
 
 #app{
-max-width:1100px;
-margin:auto
+  width:100%;
+  max-width:1180px;
+  margin:auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:500;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  padding:12px 18px;
+}
+
+.topbar-inner{
+  max-width:1180px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.brand-logo{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eaf1ff;
+}
+
+.brand-title{
+  font-size:16px;
+  font-weight:850;
+}
+
+.brand-sub{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.user-mini{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.user-mini img{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#edf2f7;
+}
+
+.content{
+  padding:18px;
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.hero{
+  background:
+    linear-gradient(135deg,#1d4ed8,#2563eb 50%,#38bdf8);
+  color:#fff;
+  border-radius:24px;
+  padding:22px;
+  margin-bottom:16px;
+  box-shadow:0 12px 35px rgba(37,99,235,.20);
+}
+
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+
+.hero-user{
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+
+.hero-avatar{
+  width:58px;
+  height:58px;
+  border-radius:18px;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.55);
+  background:rgba(255,255,255,.2);
+}
+
+.hero-name{
+  font-size:20px;
+  font-weight:850;
+}
+
+.hero-role{
+  font-size:12px;
+  opacity:.82;
+  margin-top:4px;
+}
+
+.hero-title{
+  margin-top:20px;
+  font-size:24px;
+  font-weight:900;
+}
+
+.hero-desc{
+  font-size:13px;
+  opacity:.82;
+  margin-top:5px;
 }
 
 .card{
-background:linear-gradient(145deg,rgba(18,48,80,.9),rgba(7,24,43,.88));
-border:1px solid var(--line);
-border-radius:22px;
-padding:18px;
-margin-bottom:15px;
-box-shadow:var(--shadow);
-backdrop-filter:blur(16px)
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
 }
 
-.header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:10px;
-margin-bottom:15px
+.card-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
 }
 
-.header-user{
-display:flex;
-align-items:center;
-gap:12px
-}
-
-.profile-avatar{
-width:50px;
-height:50px;
-border-radius:16px;
-object-fit:cover;
-background:#102944;
-border:1px solid var(--line)
-}
-
-.profile-name{font-weight:800}
-
-.profile-role{
-font-size:12px;
-color:var(--muted);
-margin-top:4px
-}
-
-h3{
-margin:0 0 14px;
-font-size:19px
-}
-
-.grid-menu{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:12px
-}
-
-.menu-card{
-min-height:125px;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-gap:9px;
-border:1px solid rgba(255,255,255,.11);
-border-radius:19px;
-background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
-font-weight:800;
-text-align:center;
-transition:.18s
-}
-
-.menu-card:hover{
-transform:translateY(-2px);
-border-color:rgba(85,214,255,.4)
-}
-
-.icon{
-width:58px;
-height:58px;
-display:grid;
-place-items:center;
-border-radius:18px;
-font-size:29px;
-background:rgba(63,140,255,.16);
-border:1px solid rgba(85,214,255,.18)
-}
-
-.admin-grid{
-grid-template-columns:repeat(4,1fr)
-}
-
-.admin-grid .menu-card{
-min-height:145px
-}
-
-.admin-grid .menu-card:nth-child(1) .icon{
-background:rgba(63,140,255,.2)
-}
-
-.admin-grid .menu-card:nth-child(2) .icon{
-background:rgba(167,123,255,.2)
-}
-
-.admin-grid .menu-card:nth-child(3) .icon{
-background:rgba(53,211,154,.2)
-}
-
-.admin-grid .menu-card:nth-child(4) .icon{
-background:rgba(255,180,84,.2)
-}
-
-button{
-border:1px solid transparent;
-border-radius:12px;
-padding:11px 14px;
-font-weight:700;
-color:#fff
-}
-
-.btn-primary{
-width:100%;
-background:linear-gradient(135deg,#36cfff,#3f8cff)
-}
-
-.btn-secondary{
-background:rgba(255,255,255,.07);
-border-color:var(--line)
-}
-
-.btn-blue{
-background:linear-gradient(135deg,#55b7ff,#3f74ff)
-}
-
-.btn-success{
-background:linear-gradient(135deg,#39dfa5,#159c73)
-}
-
-.btn-warning{
-background:linear-gradient(135deg,#ffc766,#e68a28);
-color:#18202b
-}
-
-.btn-purple{
-background:linear-gradient(135deg,#b58aff,#7652e9)
-}
-
-.btn-danger{
-background:linear-gradient(135deg,#ff6577,#dc3f57)
-}
-
-.small-btn{
-padding:8px 11px;
-font-size:13px;
-width:auto
+.card-title h3{
+  margin:0;
+  font-size:17px;
+  font-weight:850;
 }
 
 .summary-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
-margin-bottom:15px
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:16px;
 }
 
 .summary-card{
-padding:14px;
-border-radius:17px;
-background:rgba(255,255,255,.055);
-border:1px solid var(--line)
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:15px;
+  box-shadow:var(--shadow);
+}
+
+.summary-icon{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#eff6ff;
+  margin-bottom:9px;
+  font-size:19px;
 }
 
 .summary-label{
-font-size:12px;
-color:var(--muted)
+  color:var(--muted);
+  font-size:11px;
 }
 
 .summary-number{
-font-size:27px;
-font-weight:850;
-margin-top:4px
+  font-size:26px;
+  font-weight:900;
+  margin-top:2px;
 }
 
-.form-group{margin-bottom:14px}
+/* =========================================================
+   MENU
+========================================================= */
+
+.menu-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:11px;
+}
+
+.menu-item{
+  min-height:120px;
+  padding:18px 12px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  transition:.15s;
+}
+
+.menu-item:active{
+  transform:scale(.97);
+}
+
+.menu-icon{
+  width:52px;
+  height:52px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  background:#eff6ff;
+  font-size:27px;
+  margin-bottom:9px;
+}
+
+.menu-title{
+  font-weight:850;
+  font-size:14px;
+}
+
+.menu-sub{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:4px;
+}
+
+/* =========================================================
+   ADMIN
+========================================================= */
+
+.admin-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.admin-item{
+  min-height:110px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  box-shadow:var(--shadow);
+}
+
+.admin-item .menu-icon{
+  width:46px;
+  height:46px;
+  font-size:23px;
+}
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+button{
+  border:0;
+  border-radius:11px;
+  padding:10px 14px;
+  font-weight:750;
+}
+
+.btn-primary{
+  width:100%;
+  color:#fff;
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+}
+
+.btn-secondary{
+  color:#374151;
+  background:#f3f5f8;
+  border:1px solid #e4e8ef;
+}
+
+.btn-blue{
+  color:#fff;
+  background:#2563eb;
+}
+
+.btn-success{
+  color:#fff;
+  background:#16a34a;
+}
+
+.btn-warning{
+  color:#fff;
+  background:#f59e0b;
+}
+
+.btn-purple{
+  color:#fff;
+  background:#7c3aed;
+}
+
+.btn-danger{
+  color:#fff;
+  background:#ef4444;
+}
+
+.small-btn{
+  width:auto;
+  padding:7px 10px;
+  font-size:12px;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-group{
+  margin-bottom:14px;
+}
 
 label{
-display:block;
-margin-bottom:7px;
-font-size:13px;
-font-weight:700
+  display:block;
+  margin-bottom:6px;
+  font-size:12px;
+  font-weight:800;
 }
 
 input,select,textarea{
-width:100%;
-padding:11px 12px;
-border-radius:12px;
-border:1px solid var(--line);
-background:rgba(3,16,30,.7);
-color:#fff;
-outline:none
+  width:100%;
+  border:1px solid #dfe4ec;
+  background:#fff;
+  color:#172033;
+  border-radius:11px;
+  padding:11px 12px;
+  outline:none;
 }
 
-select option{background:#0a1c31}
+input:focus,select:focus,textarea:focus{
+  border-color:#60a5fa;
+  box-shadow:0 0 0 3px rgba(37,99,235,.08);
+}
 
 textarea{
-min-height:110px;
-resize:vertical
+  min-height:105px;
+  resize:vertical;
 }
 
-.recent-row{
-display:grid;
-grid-template-columns:minmax(95px,1.1fr) minmax(120px,1.5fr) minmax(130px,2fr) auto auto auto;
-align-items:center;
-gap:10px;
-padding:11px 4px;
-border-bottom:1px solid rgba(255,255,255,.08)
+/* =========================================================
+   TICKET
+========================================================= */
+
+.scope-tabs{
+  display:flex;
+  gap:7px;
+  overflow:auto;
+  padding-bottom:3px;
 }
-
-.recent-row:last-child{border-bottom:0}
-
-.recent-ticket{
-color:var(--cyan);
-font-weight:800;
-font-size:13px
-}
-
-.recent-location{
-font-weight:750;
-white-space:nowrap;
-overflow:hidden;
-text-overflow:ellipsis
-}
-
-.recent-issue{
-color:#cbd8e7;
-white-space:nowrap;
-overflow:hidden;
-text-overflow:ellipsis;
-font-size:13px
-}
-
-.recent-tech{
-color:var(--muted);
-font-size:12px;
-white-space:nowrap;
-overflow:hidden;
-text-overflow:ellipsis
-}
-
-.priority-low{color:#9fb1c7}
-.priority-normal{color:#8fc3ff}
-.priority-high{color:#ffd18b}
-.priority-urgent{color:#ff8f9d;font-weight:850}
 
 .ticket-card{
-padding:14px;
-border:1px solid var(--line);
-border-radius:17px;
-background:rgba(255,255,255,.045);
-margin-bottom:10px
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:14px;
+  margin-bottom:10px;
+  background:#fff;
 }
 
 .ticket-top{
-display:flex;
-justify-content:space-between;
-gap:10px
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
 }
 
 .ticket-no{
-color:var(--cyan);
-font-weight:800
+  color:var(--blue);
+  font-size:12px;
+  font-weight:900;
 }
 
 .ticket-location{
-font-size:17px;
-font-weight:750;
-margin-top:4px
+  font-size:16px;
+  font-weight:850;
+  margin-top:3px;
 }
 
 .ticket-issue{
-margin-top:9px;
-line-height:1.5;
-color:#d2deec
+  color:#4b5563;
+  font-size:13px;
+  line-height:1.5;
+  margin-top:8px;
 }
 
 .ticket-meta{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:7px;
-margin-top:10px;
-font-size:12px;
-color:var(--muted)
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
+  color:var(--muted);
+  font-size:11px;
+  margin-top:10px;
 }
 
 .ticket-actions{
-display:flex;
-flex-wrap:wrap;
-gap:7px;
-margin-top:11px
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:11px;
 }
 
 .ticket-actions button{
-flex:1;
-min-width:100px
-}
-
-.status-dot{
-width:7px;
-height:7px;
-border-radius:50%;
-display:inline-block;
-margin-right:6px;
-background:currentColor
+  flex:1;
+  min-width:100px;
 }
 
 .badge{
-display:inline-flex;
-align-items:center;
-padding:5px 9px;
-border-radius:999px;
-font-size:11px;
-font-weight:800;
-background:rgba(255,255,255,.07);
-color:#dbe8f7
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:10px;
+  font-weight:850;
+  white-space:nowrap;
 }
 
 .badge-new{
-background:rgba(63,140,255,.16);
-color:#8fc3ff
+  color:#2563eb;
+  background:#eff6ff;
 }
 
 .badge-progress{
-background:rgba(255,180,84,.16);
-color:#ffd18b
+  color:#b45309;
+  background:#fff7ed;
 }
 
 .badge-parts{
-background:rgba(167,123,255,.18);
-color:#c8adff
+  color:#7c3aed;
+  background:#f5f3ff;
 }
 
 .badge-completed{
-background:rgba(53,211,154,.16);
-color:#7de7c0
+  color:#15803d;
+  background:#f0fdf4;
 }
 
 .badge-cancelled{
-background:rgba(255,101,119,.18);
-color:#ff9aa8
+  color:#dc2626;
+  background:#fef2f2;
 }
 
+.status-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:currentColor;
+  margin-right:5px;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
 .table-wrap{
-overflow-x:auto;
-border:1px solid var(--line);
-border-radius:14px
+  overflow-x:auto;
+  border:1px solid var(--line);
+  border-radius:14px;
 }
 
 table{
-width:100%;
-min-width:650px;
-border-collapse:collapse
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
 }
 
 th,td{
-padding:10px 8px;
-text-align:left;
-border-bottom:1px solid rgba(255,255,255,.08);
-font-size:13px
+  padding:10px 8px;
+  text-align:left;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
 }
 
-th{background:rgba(255,255,255,.05)}
-
-td{color:#cbd8e7}
-
-.modal{
-position:fixed;
-inset:0;
-z-index:9000;
-background:rgba(1,8,17,.75);
-display:flex;
-align-items:center;
-justify-content:center;
-padding:16px
+th{
+  background:#f8fafc;
+  font-weight:850;
 }
 
-.modal-box{
-width:100%;
-max-width:680px;
-max-height:85vh;
-overflow:auto;
-background:#0b1f38;
-border:1px solid var(--line);
-border-radius:22px;
-padding:18px
+td{
+  color:#4b5563;
 }
 
-.modal-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:15px
-}
-
-.close-btn{
-border-radius:50%;
-padding:8px 11px;
-background:rgba(255,255,255,.08)
-}
-
-#toast{
-position:fixed;
-left:50%;
-bottom:20px;
-transform:translateX(-50%);
-z-index:10000;
-min-width:250px;
-max-width:90%;
-padding:13px 17px;
-border-radius:14px;
-text-align:center;
-background:#10243b;
-border:1px solid var(--line);
-display:none
-}
-
-#toast.success{background:#0f6f55}
-#toast.error{background:#a82e42}
-#toast.warning{background:#9a641d}
-
-#loadingScreen{
-position:fixed;
-inset:0;
-z-index:9999;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#030b15
-}
-
-.loading-box{
-text-align:center;
-padding:35px;
-width:min(420px,90%);
-border:1px solid var(--line);
-border-radius:25px;
-background:#0b1f38
-}
-
-.spinner{
-width:46px;
-height:46px;
-margin:0 auto 18px;
-border:3px solid rgba(255,255,255,.14);
-border-top-color:var(--cyan);
-border-right-color:var(--blue);
-border-radius:50%;
-animation:spin .8s linear infinite
-}
-
-@keyframes spin{
-to{transform:rotate(360deg)}
-}
+/* =========================================================
+   PHOTO
+========================================================= */
 
 .photo-preview{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:7px;
-margin-top:9px
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-top:8px;
 }
 
 .photo-preview img{
-width:100%;
-aspect-ratio:1;
-object-fit:cover;
-border-radius:10px
+  width:100%;
+  aspect-ratio:1;
+  object-fit:cover;
+  border-radius:10px;
 }
 
-.photo-tools{
-display:grid;
-grid-template-columns:1fr;
-gap:8px
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:9000;
+  background:rgba(15,23,42,.55);
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  padding:0;
+}
+
+.modal-box{
+  width:100%;
+  max-width:700px;
+  max-height:88vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:24px 24px 0 0;
+  padding:18px;
+  box-shadow:0 -10px 40px rgba(0,0,0,.18);
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.close-btn{
+  width:36px;
+  height:36px;
+  padding:0;
+  border-radius:50%;
+  background:#f3f4f6;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+#loadingScreen{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f4f7fb;
+}
+
+.loading-box{
+  width:min(390px,90%);
+  text-align:center;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:30px;
+  box-shadow:var(--shadow);
+}
+
+.spinner{
+  width:42px;
+  height:42px;
+  border:3px solid #e5e7eb;
+  border-top-color:#2563eb;
+  border-radius:50%;
+  margin:0 auto 15px;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
 }
 
 .empty{
-text-align:center;
-color:var(--muted);
-padding:30px
+  text-align:center;
+  padding:28px;
+  color:var(--muted);
 }
 
 .section-note{
-font-size:12px;
-color:var(--muted);
-margin:-6px 0 14px
+  color:var(--muted);
+  font-size:11px;
+  margin:-6px 0 14px;
 }
+
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  z-index:10000;
+  min-width:250px;
+  max-width:90%;
+  padding:12px 16px;
+  border-radius:12px;
+  text-align:center;
+  color:#fff;
+  background:#172033;
+  display:none;
+}
+
+#toast.success{background:#15803d}
+#toast.error{background:#dc2626}
+#toast.warning{background:#b45309}
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media(max-width:700px){
 
-.recent-row{
-grid-template-columns:1fr auto auto;
-gap:7px
-}
+  .content{
+    padding:12px;
+  }
 
-.recent-location,
-.recent-issue{
-grid-column:1
-}
+  .topbar{
+    padding:10px 12px;
+  }
 
-.recent-tech{
-grid-column:1
-}
+  .summary-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
 
-.recent-row .badge{
-grid-column:2;
-grid-row:1
-}
+  .admin-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
 
-.recent-row .recent-priority{
-grid-column:2;
-grid-row:2
-}
+  .hero{
+    border-radius:20px;
+    padding:18px;
+  }
 
-.recent-row .small-btn{
-grid-column:3;
-grid-row:1/3
-}
+  .hero-title{
+    font-size:20px;
+  }
 
-.admin-grid{
-grid-template-columns:repeat(2,1fr)
-}
+  .ticket-meta{
+    grid-template-columns:1fr;
+  }
 
-.admin-grid .menu-card{
-min-height:125px
-}
-
-.summary-grid{
-grid-template-columns:repeat(2,1fr)
-}
-
-.ticket-meta{
-grid-template-columns:1fr
-}
-
-.grid-menu{
-grid-template-columns:repeat(2,1fr)
-}
-
-.photo-preview{
-grid-template-columns:repeat(3,1fr)
-}
-
+  .photo-preview{
+    grid-template-columns:repeat(3,1fr);
+  }
 }
 </style>
 </head>
@@ -601,531 +714,581 @@ grid-template-columns:repeat(3,1fr)
 <body>
 
 <div id="loadingScreen">
-<div class="loading-box">
-<div class="spinner"></div>
-<div id="loadingText">⏳ กำลังยืนยันตัวตนผ่าน LINE...</div>
-</div>
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div id="loadingText">กำลังเชื่อมต่อระบบ...</div>
+  </div>
 </div>
 
 <div id="app" class="hidden">
 
-<section id="registerSection" class="hidden">
-<div class="card">
-<h3 style="text-align:center">🏨 Tara Work Order</h3>
-<p class="section-note" style="text-align:center">ลงทะเบียนเพื่อเข้าใช้งานระบบ</p>
+  <!-- =====================================================
+       TOP BAR
+  ====================================================== -->
 
-<form id="regForm">
+  <div class="topbar">
+    <div class="topbar-inner">
 
-<div class="form-group">
-<label>รหัสพนักงาน</label>
-<input id="regEmpId" value="สร้างอัตโนมัติ" readonly>
+      <div class="brand">
+        <div>
+          <div class="brand-title">TARA ENGINEERING</div>
+          <div class="brand-sub">Hotel Engineering System</div>
+        </div>
+      </div>
+
+      <div class="user-mini">
+        <span id="topUserName"></span>
+        <img id="topUserPicture">
+      </div>
+
+    </div>
+  </div>
+
+  <main class="content">
+
+    <!-- ===================================================
+         REGISTER
+    ==================================================== -->
+
+    <section id="registerSection" class="hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+          <h3>🏨 ลงทะเบียนเข้าใช้งาน</h3>
+        </div>
+
+        <div class="section-note">
+          ระบบจะเชื่อมบัญชี LINE นี้กับข้อมูลพนักงาน
+        </div>
+
+        <form id="regForm">
+
+          <div class="form-group">
+            <label>รหัสพนักงาน</label>
+            <input id="regEmpId" value="สร้างอัตโนมัติ" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>ชื่อ-นามสกุล</label>
+            <input id="regFullName" required>
+          </div>
+
+          <div class="form-group">
+            <label>แผนก</label>
+            <select id="regDept" required>
+              <option value="">-- เลือกแผนก --</option>
+            </select>
+          </div>
+
+          <button class="btn-primary">
+            ลงทะเบียนและเข้าใช้งาน
+          </button>
+
+        </form>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         DASHBOARD
+    ==================================================== -->
+
+    <section id="dashboardSection" class="view hidden">
+
+      <div class="hero">
+
+        <div class="hero-top">
+
+          <div class="hero-user">
+
+            <img id="userProfilePicture" class="hero-avatar">
+
+            <div>
+              <div id="userProfileName" class="hero-name">
+                ...
+              </div>
+
+              <div id="userDeptRole" class="hero-role">
+                ...
+              </div>
+            </div>
+
+          </div>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="reloadSystem()">
+            🔄
+          </button>
+
+        </div>
+
+        <div class="hero-title">
+          Engineering Work Order
+        </div>
+
+        <div class="hero-desc">
+          ระบบแจ้งซ่อมและบริหารงานวิศวกรรม
+        </div>
+
+      </div>
+
+      <!-- SUMMARY -->
+
+      <div class="summary-grid">
+
+        <div class="summary-card">
+          <div class="summary-icon">🆕</div>
+          <div class="summary-label">งานใหม่</div>
+          <div id="sumNew" class="summary-number">0</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">🔧</div>
+          <div class="summary-label">กำลังดำเนินการ</div>
+          <div id="sumProgress" class="summary-number">0</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">📦</div>
+          <div class="summary-label">รออะไหล่</div>
+          <div id="sumParts" class="summary-number">0</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-icon">✅</div>
+          <div class="summary-label">เสร็จแล้ว</div>
+          <div id="sumComplete" class="summary-number">0</div>
+        </div>
+
+      </div>
+
+      <!-- MAIN MENU -->
+
+      <div class="card">
+
+        <div class="card-title">
+          <h3>🔧 งานวิศวกรรม</h3>
+        </div>
+
+        <div class="menu-grid">
+
+          <div
+            class="menu-item"
+            onclick="showView('repairSection')">
+
+            <div class="menu-icon">🔧</div>
+            <div class="menu-title">แจ้งซ่อม</div>
+            <div class="menu-sub">สร้างใบแจ้งซ่อมใหม่</div>
+
+          </div>
+
+          <div
+            class="menu-item"
+            onclick="showView('taskSection');renderTaskList()">
+
+            <div class="menu-icon">🛠️</div>
+            <div class="menu-title">งานซ่อม</div>
+            <div class="menu-sub">ติดตามสถานะงาน</div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ADMIN -->
+
+      <div id="adminMenu" class="card hidden">
+
+        <div class="card-title">
+          <h3>⚙️ Admin Management</h3>
+        </div>
+
+        <div class="section-note">
+          เมนูผู้ดูแลระบบ
+        </div>
+
+        <div class="admin-grid">
+
+          <div
+            class="admin-item"
+            onclick="showView('stockSection');renderStock()">
+
+            <div class="menu-icon">📦</div>
+            <div class="menu-title">Inventory</div>
+            <div class="menu-sub">Stock In / Stock Out</div>
+
+          </div>
+
+          <div
+            class="admin-item"
+            onclick="showView('requisitionSection');renderRequisitions()">
+
+            <div class="menu-icon">📋</div>
+            <div class="menu-title">Pending Parts</div>
+            <div class="menu-sub">Requisition / PDF</div>
+
+          </div>
+
+          <div
+            class="admin-item"
+            onclick="showView('staffSection');renderStaff()">
+
+            <div class="menu-icon">👤</div>
+            <div class="menu-title">Staff</div>
+            <div class="menu-sub">จัดการพนักงาน</div>
+
+          </div>
+
+          <div
+            class="admin-item"
+            onclick="showView('settingsSection');renderSettings()">
+
+            <div class="menu-icon">⚙️</div>
+            <div class="menu-title">Settings</div>
+            <div class="menu-sub">ตั้งค่าระบบ</div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RECENT -->
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>📋 รายการล่าสุด</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('taskSection');renderTaskList()">
+            ดูทั้งหมด
+          </button>
+
+        </div>
+
+        <div
+          id="dashboardScopeTabs"
+          class="scope-tabs">
+        </div>
+
+        <div id="dashboardTicketList"></div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         REPAIR
+    ==================================================== -->
+
+    <section id="repairSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>🔧 แจ้งซ่อม</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <form id="repairForm">
+
+          <div class="form-group">
+            <label>สถานที่ / เลขห้อง</label>
+            <input
+              id="repLocation"
+              required
+              placeholder="เช่น 1205">
+          </div>
+
+          <div class="form-group">
+            <label>หมวดหมู่งาน</label>
+
+            <select id="repCategory">
+              <option value="ELECTRICAL">ไฟฟ้า / แสงสว่าง</option>
+              <option value="PLUMBING">ประปา / สุขภัณฑ์</option>
+              <option value="HVAC">ระบบปรับอากาศ</option>
+              <option value="FURNITURE">เฟอร์นิเจอร์ / อาคาร</option>
+              <option value="OTHER">อื่น ๆ</option>
+            </select>
+
+          </div>
+
+          <div class="form-group">
+            <label>ระดับความด่วน</label>
+
+            <select id="repPriority">
+              <option value="LOW">ต่ำ</option>
+              <option value="NORMAL">ปกติ</option>
+              <option value="HIGH">สูง</option>
+              <option value="URGENT">ด่วนมาก</option>
+            </select>
+
+          </div>
+
+          <div class="form-group">
+
+            <label>อาการ / รายละเอียด</label>
+
+            <textarea
+              id="repIssue"
+              required></textarea>
+
+          </div>
+
+          <div class="form-group">
+
+            <label>📷 รูปภาพประกอบ</label>
+
+            <button
+              type="button"
+              class="btn-blue"
+              onclick="document.getElementById('repPhotos').click()">
+              📷 ถ่ายรูป / เลือกรูป
+            </button>
+
+            <input
+              id="repPhotos"
+              class="hidden"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple>
+
+            <div
+              id="photoPreview"
+              class="photo-preview">
+            </div>
+
+          </div>
+
+          <button
+            id="btnSubmitRepair"
+            class="btn-primary">
+            🔧 ส่งรายการแจ้งซ่อม
+          </button>
+
+        </form>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         TASK
+    ==================================================== -->
+
+    <section id="taskSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>🛠️ รายการงานซ่อม</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <select
+          id="taskStatusFilter"
+          onchange="renderTaskList()">
+
+          <option value="">ทุกสถานะ</option>
+          <option value="NEW">NEW</option>
+          <option value="ASSIGNED">ASSIGNED</option>
+          <option value="IN_PROGRESS">IN PROGRESS</option>
+          <option value="WAITING_PARTS">WAITING PARTS</option>
+          <option value="COMPLETED">COMPLETED</option>
+          <option value="CANCELLED">CANCELLED</option>
+
+        </select>
+
+        <div
+          id="taskList"
+          style="margin-top:12px">
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         STOCK
+    ==================================================== -->
+
+    <section id="stockSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>📦 Inventory / Stock</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <div class="menu-grid">
+
+          <button
+            class="btn-success"
+            onclick="openStockMove('IN')">
+            ＋ Stock In
+          </button>
+
+          <button
+            class="btn-warning"
+            onclick="openStockMove('OUT')">
+            － Stock Out
+          </button>
+
+        </div>
+
+        <div
+          id="stockList"
+          style="margin-top:12px">
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         REQUISITION
+    ==================================================== -->
+
+    <section id="requisitionSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>📋 Pending Parts / Requisition</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <div id="requisitionList"></div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         STAFF
+    ==================================================== -->
+
+    <section id="staffSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>👤 Staff Management</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <div id="staffList"></div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         SETTINGS
+    ==================================================== -->
+
+    <section id="settingsSection" class="view hidden">
+
+      <div class="card">
+
+        <div class="card-title">
+
+          <h3>⚙️ Settings</h3>
+
+          <button
+            class="btn-secondary small-btn"
+            onclick="showView('dashboardSection')">
+            กลับ
+          </button>
+
+        </div>
+
+        <div id="settingsList"></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
 </div>
 
-<div class="form-group">
-<label>ชื่อ-นามสกุล</label>
-<input id="regFullName" required>
-</div>
-
-<div class="form-group">
-<label>แผนก</label>
-<select id="regDept" required>
-<option value="">-- เลือกแผนก --</option>
-</select>
-</div>
-
-<button type="submit" class="btn-primary">
-ลงทะเบียนและเข้าใช้งาน
-</button>
-
-</form>
-</div>
-</section>
-
-
-<section id="dashboardSection" class="view hidden">
-
-<div class="header">
-
-<div class="header-user">
-
-<img id="userProfilePicture"
-class="profile-avatar"
-alt="profile">
-
-<div>
-<div id="userProfileName" class="profile-name">...</div>
-<div id="userDeptRole" class="profile-role">...</div>
-</div>
-
-</div>
-
-<button type="button"
-class="btn-secondary small-btn"
-onclick="reloadSystem()">
-🔄
-</button>
-
-</div>
-
-
-<div class="summary-grid">
-
-<div class="summary-card">
-<div class="summary-label">งานใหม่</div>
-<div id="sumNew" class="summary-number">0</div>
-</div>
-
-<div class="summary-card">
-<div class="summary-label">กำลังดำเนินการ</div>
-<div id="sumProgress" class="summary-number">0</div>
-</div>
-
-<div class="summary-card">
-<div class="summary-label">รออะไหล่</div>
-<div id="sumParts" class="summary-number">0</div>
-</div>
-
-<div class="summary-card">
-<div class="summary-label">เสร็จแล้ว</div>
-<div id="sumComplete" class="summary-number">0</div>
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>🏨 Engineering Work Order</h3>
-
-<div class="grid-menu">
-
-<div class="menu-card"
-onclick="showView('repairSection')">
-
-<div class="icon">🔧</div>
-แจ้งซ่อม
-
-</div>
-
-<div class="menu-card"
-onclick="openTaskSection()">
-
-<div class="icon">🛠️</div>
-งานซ่อม
-
-</div>
-
-</div>
-
-</div>
-
-
-<div id="adminMenu" class="card hidden">
-
-<h3>⚙️ Admin Management</h3>
-
-<div class="section-note">
-เมนูผู้ดูแลระบบ
-</div>
-
-<div class="grid-menu admin-grid">
-
-<div class="menu-card"
-onclick="openStockSection()">
-
-<div class="icon">📦</div>
-<div>Inventory</div>
-<small>Stock In / Stock Out</small>
-
-</div>
-
-<div class="menu-card"
-onclick="openRequisitionSection()">
-
-<div class="icon">📋</div>
-<div>Pending Parts</div>
-<small>Requisition / PDF</small>
-
-</div>
-
-<div class="menu-card"
-onclick="openStaffSection()">
-
-<div class="icon">👤</div>
-<div>Staff Management</div>
-<small>จัดการพนักงาน</small>
-
-</div>
-
-<div class="menu-card"
-onclick="openSettingsSection()">
-
-<div class="icon">⚙️</div>
-<div>Settings</div>
-<small>Department Management</small>
-
-</div>
-
-</div>
-</div>
-
-
-<div class="card">
-
-<div class="header">
-
-<h3>📋 รายการล่าสุด</h3>
-
-<button type="button"
-class="btn-secondary small-btn"
-onclick="openTaskSection()">
-ดูทั้งหมด
-</button>
-
-</div>
-
-<div id="dashboardScopeTabs"
-class="ticket-actions"
-style="margin:0 0 10px">
-</div>
-
-<div id="dashboardTicketList"></div>
-
-</div>
-
-</section>
-
-
-<section id="repairSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>🔧 แจ้งซ่อม</h3>
-
-<button type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-กลับ
-</button>
-
-</div>
-
-<form id="repairForm">
-
-<div class="form-group">
-<label>สถานที่ / เลขห้อง</label>
-<input id="repLocation"
-required
-placeholder="เช่น 1205">
-</div>
-
-<div class="form-group">
-<label>หมวดหมู่งาน</label>
-
-<select id="repCategory">
-
-<option value="ELECTRICAL">
-ไฟฟ้า / แสงสว่าง
-</option>
-
-<option value="PLUMBING">
-ประปา / สุขภัณฑ์
-</option>
-
-<option value="HVAC">
-ระบบปรับอากาศ
-</option>
-
-<option value="FURNITURE">
-เฟอร์นิเจอร์ / อาคาร
-</option>
-
-<option value="OTHER">
-อื่น ๆ
-</option>
-
-</select>
-
-</div>
-
-
-<div class="form-group">
-
-<label>ระดับความด่วน</label>
-
-<select id="repPriority">
-
-<option value="LOW">ต่ำ</option>
-<option value="NORMAL">ปกติ</option>
-<option value="HIGH">สูง</option>
-<option value="URGENT">ด่วนมาก</option>
-
-</select>
-
-</div>
-
-
-<div class="form-group">
-
-<label>อาการ / รายละเอียด</label>
-
-<textarea id="repIssue" required></textarea>
-
-</div>
-
-
-<div class="form-group">
-
-<label>📷 รูปภาพประกอบ</label>
-
-<div class="photo-tools">
-
-<button
-type="button"
-class="btn-blue"
-onclick="document.getElementById('repPhotos').click()">
-
-📷 ถ่ายรูป
-
-</button>
-
-</div>
-
-<input
-id="repPhotos"
-class="hidden"
-type="file"
-accept="image/*"
-capture="environment"
-multiple>
-
-<div id="photoPreview"
-class="photo-preview">
-</div>
-
-</div>
-
-
-<button
-id="btnSubmitRepair"
-type="submit"
-class="btn-primary">
-
-🔧 ส่งรายการแจ้งซ่อม
-
-</button>
-
-</form>
-
-</div>
-
-</section>
-
-
-<section id="taskSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>🛠️ รายการงานซ่อม</h3>
-
-<button
-type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-
-กลับ
-
-</button>
-
-</div>
-
-<select id="taskStatusFilter"
-onchange="renderTaskList()">
-
-<option value="">ทุกสถานะ</option>
-<option value="NEW">NEW</option>
-<option value="ASSIGNED">ASSIGNED</option>
-<option value="IN_PROGRESS">IN PROGRESS</option>
-<option value="WAITING_PARTS">WAITING PARTS</option>
-<option value="COMPLETED">COMPLETED</option>
-<option value="CANCELLED">CANCELLED</option>
-
-</select>
-
-<div id="taskList"
-style="margin-top:12px">
-</div>
-
-</div>
-
-</section>
-
-
-<section id="stockSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>📦 Inventory / Stock</h3>
-
-<button
-type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-
-กลับ
-
-</button>
-
-</div>
-
-<div class="grid-menu" style="margin-bottom:12px">
-
-<button
-type="button"
-class="btn-success"
-onclick="openStockMove('IN')">
-
-＋ Stock In
-
-</button>
-
-<button
-type="button"
-class="btn-warning"
-onclick="openStockMove('OUT')">
-
-－ Stock Out
-
-</button>
-
-</div>
-
-<div id="stockList"></div>
-
-</div>
-
-</section>
-
-
-<section id="requisitionSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>📋 Pending Parts / Requisition</h3>
-
-<button
-type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-
-กลับ
-
-</button>
-
-</div>
-
-<div id="requisitionList"></div>
-
-</div>
-
-</section>
-
-
-<section id="staffSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>👤 Staff Management</h3>
-
-<button
-type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-
-กลับ
-
-</button>
-
-</div>
-
-<div id="staffList"></div>
-
-</div>
-
-</section>
-
-
-<section id="settingsSection" class="view hidden">
-
-<div class="card">
-
-<div class="header">
-
-<h3>⚙️ Settings / Department Management</h3>
-
-<button
-type="button"
-class="btn-secondary small-btn"
-onclick="showView('dashboardSection')">
-
-กลับ
-
-</button>
-
-</div>
-
-<div id="settingsList"></div>
-
-</div>
-
-</section>
-
-</div>
-
+<!-- MODAL -->
 
 <div id="modal" class="modal hidden">
 
-<div class="modal-box">
+  <div class="modal-box">
 
-<div class="modal-header">
+    <div class="modal-header">
 
-<strong id="modalTitle">รายละเอียด</strong>
+      <strong id="modalTitle">
+        รายละเอียด
+      </strong>
 
-<button
-type="button"
-class="close-btn"
-onclick="closeModal()">
+      <button
+        class="close-btn"
+        onclick="closeModal()">
+        ✕
+      </button>
 
-✕
+    </div>
 
-</button>
+    <div id="modalBody"></div>
+
+  </div>
 
 </div>
-
-<div id="modalBody"></div>
-
-</div>
-
-</div>
-
 
 <div id="toast"></div>
-
 
 <script>
 
 /* =========================================================
-   CONFIG
+   CONFIG — ห้ามเปลี่ยน
 ========================================================= */
 
 const LIFF_ID = '2010924055-ptu13GAx';
@@ -1142,21 +1305,20 @@ let currentUser = null;
 let currentProfile = null;
 
 let systemData = {
-    tickets: [],
-    departmentTickets: [],
-    summary: {},
-    inventory: [],
-    staff: [],
-    requisitions: [],
-    settings: {},
-    permissions: {},
-    departments: []
+  tickets:[],
+  departmentTickets:[],
+  summary:{},
+  inventory:[],
+  staff:[],
+  requisitions:[],
+  settings:{},
+  permissions:{},
+  departments:[]
 };
 
 let pendingPhotoFiles = [];
 let dashboardScope = 'SELF';
 let modalPromptResolve = null;
-let toastTimer = null;
 
 
 /* =========================================================
@@ -1168,111 +1330,81 @@ window.addEventListener('load', initSystem);
 
 async function initSystem(){
 
-    try{
+  try{
 
-        setLoading('⏳ กำลังเชื่อมต่อ LINE...');
+    setLoading('⏳ กำลังเชื่อมต่อ LINE...');
 
-        await liff.init({
-            liffId: LIFF_ID
-        });
+    await liff.init({
+      liffId:LIFF_ID
+    });
 
+    if(!liff.isLoggedIn()){
 
-        if(!liff.isLoggedIn()){
+      liff.login();
 
-            setLoading('⏳ กำลังเข้าสู่ระบบ LINE...');
-
-            liff.login();
-
-            return;
-        }
-
-
-        setLoading('⏳ กำลังอ่านข้อมูล LINE...');
-
-        currentProfile = await liff.getProfile();
-
-
-        currentUser = {
-            userId: currentProfile.userId,
-            displayName: currentProfile.displayName,
-            pictureUrl: currentProfile.pictureUrl || ''
-        };
-
-
-        await checkUserAuth();
-
-
-    }catch(e){
-
-        console.error(e);
-
-        showFatalError(
-            e && e.message
-                ? e.message
-                : 'ไม่สามารถเริ่มระบบได้'
-        );
-
+      return;
     }
+
+    setLoading('⏳ กำลังอ่านข้อมูล LINE...');
+
+    currentProfile = await liff.getProfile();
+
+    currentUser = {
+      userId:currentProfile.userId,
+      displayName:currentProfile.displayName,
+      pictureUrl:currentProfile.pictureUrl || ''
+    };
+
+    await checkUserAuth();
+
+  }catch(e){
+
+    showFatalError(e.message);
+
+  }
 
 }
 
 
 /* =========================================================
-   API
+   GOOGLE APPS SCRIPT API
 ========================================================= */
 
 async function runServer(action,data){
 
-    const payload = {
-        action: action,
-        data: data || {}
-    };
+  const response = await fetch(API_URL,{
+    method:'POST',
 
+    headers:{
+      'Content-Type':'text/plain;charset=utf-8'
+    },
 
-    console.log('API REQUEST:',payload);
+    body:JSON.stringify({
+      action:action,
+      data:data || {}
+    })
 
+  });
 
-    const response = await fetch(API_URL,{
+  const text = await response.text();
 
-        method:'POST',
+  let result;
 
-        headers:{
-            'Content-Type':'text/plain;charset=utf-8'
-        },
+  try{
 
-        body:JSON.stringify(payload)
+    result = JSON.parse(text);
 
-    });
+  }catch(e){
 
+    console.error('SERVER RESPONSE:',text);
 
-    if(!response.ok){
+    throw new Error(
+      'API ไม่ได้ส่ง JSON กลับมา'
+    );
 
-        throw new Error(
-            'Apps Script HTTP '+response.status
-        );
+  }
 
-    }
-
-
-    const text = await response.text();
-
-
-    console.log('API RESPONSE:',text);
-
-
-    try{
-
-        return JSON.parse(text);
-
-    }catch(e){
-
-        console.error('INVALID API RESPONSE:',text);
-
-        throw new Error(
-            'Apps Script ไม่ได้ส่ง JSON กลับมา'
-        );
-
-    }
+  return result;
 
 }
 
@@ -1283,67 +1415,53 @@ async function runServer(action,data){
 
 async function checkUserAuth(){
 
-    try{
+  try{
 
-        setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
+    setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
 
+    const r = await runServer(
+      'getUser',
+      {
+        userId:currentUser.userId
+      }
+    );
 
-        const r = await runServer(
-            'getUser',
-            {
-                userId:currentUser.userId
-            }
-        );
+    if(
+      r.status === 'APPROVED' ||
+      (
+        r.status === 'success' &&
+        r.registered
+      )
+    ){
 
+      currentUser = Object.assign(
+        {},
+        currentUser,
+        r.data || r.user || {}
+      );
 
-        console.log('getUser:',r);
+      await loadInitialData();
 
-
-        if(
-            r &&
-            (
-                r.status === 'APPROVED' ||
-                (
-                    r.status === 'success' &&
-                    r.registered
-                )
-            )
-        ){
-
-            currentUser = Object.assign(
-                {},
-                currentUser,
-                r.data || r.user || {}
-            );
-
-
-            await loadInitialData();
-
-            return;
-        }
-
-
-        if(r && r.status === 'NOT_REGISTERED'){
-
-            showRegister();
-
-            return;
-        }
-
-
-        throw new Error(
-            r?.message ||
-            'ไม่สามารถตรวจสอบบัญชีได้'
-        );
-
-
-    }catch(e){
-
-        console.error(e);
-
-        showFatalError(e.message);
-
+      return;
     }
+
+    if(r.status === 'NOT_REGISTERED'){
+
+      showRegister();
+
+      return;
+    }
+
+    throw new Error(
+      r.message ||
+      'ไม่สามารถตรวจสอบบัญชีได้'
+    );
+
+  }catch(e){
+
+    showFatalError(e.message);
+
+  }
 
 }
 
@@ -1354,84 +1472,70 @@ async function checkUserAuth(){
 
 async function loadInitialData(){
 
-    try{
+  try{
 
-        setLoading('⏳ กำลังโหลดข้อมูลระบบ...');
+    setLoading('⏳ กำลังโหลดข้อมูลระบบ...');
 
+    const r = await runServer(
+      'getInitialData',
+      {
+        userId:currentUser.userId
+      }
+    );
 
-        const r = await runServer(
-            'getInitialData',
-            {
-                userId:currentUser.userId
-            }
-        );
+    if(r.status !== 'success'){
 
-
-        console.log('getInitialData:',r);
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'โหลดข้อมูลไม่สำเร็จ'
-            );
-
-        }
-
-
-        systemData = Object.assign(
-            systemData,
-            r
-        );
-
-
-        if(r.user){
-
-            currentUser = Object.assign(
-                {},
-                currentUser,
-                r.user
-            );
-
-        }
-
-
-        hideAllViews();
-
-        updateHeader();
-
-        updateSummary();
-
-        renderDashboardScopeTabs();
-
-        renderDashboardTickets();
-
-        applyPermissions();
-
-        populateDepartmentOptions();
-
-
-        document
-            .getElementById('app')
-            .classList.remove('hidden');
-
-
-        document
-            .getElementById('loadingScreen')
-            .classList.add('hidden');
-
-
-        showView('dashboardSection');
-
-
-    }catch(e){
-
-        console.error(e);
-
-        showFatalError(e.message);
+      throw new Error(
+        r.message ||
+        'โหลดข้อมูลไม่สำเร็จ'
+      );
 
     }
+
+    systemData = Object.assign(
+      systemData,
+      r
+    );
+
+    if(r.user){
+
+      currentUser = Object.assign(
+        {},
+        currentUser,
+        r.user
+      );
+
+    }
+
+    hideAllViews();
+
+    updateHeader();
+
+    updateSummary();
+
+    renderDashboardScopeTabs();
+
+    renderDashboardTickets();
+
+    applyPermissions();
+
+    populateDepartmentOptions();
+
+    document
+      .getElementById('app')
+      .classList.remove('hidden');
+
+    document
+      .getElementById('loadingScreen')
+      .classList.add('hidden');
+
+    showView('dashboardSection');
+
+  }catch(e){
+
+    showFatalError(e.message);
+
+  }
 
 }
 
@@ -1440,380 +1544,250 @@ async function loadInitialData(){
    REGISTER
 ========================================================= */
 
+function populateDepartmentOptions(){
+
+  const defaultDepartments = [
+
+    'ENGINEERING',
+    'HOUSEKEEPING',
+    'FRONT OFFICE',
+    'FOOD & BEVERAGE',
+    'KITCHEN',
+    'SECURITY',
+    'HUMAN RESOURCES',
+    'ACCOUNTING',
+    'SALES & MARKETING',
+    'PURCHASING',
+    'BANQUET',
+    'SPA',
+    'OTHER'
+
+  ];
+
+  const list =
+    systemData.departments &&
+    systemData.departments.length
+
+      ? systemData.departments
+
+      : defaultDepartments;
+
+  const sel =
+    document.getElementById('regDept');
+
+  if(!sel)return;
+
+  const current = sel.value;
+
+  sel.innerHTML =
+    '<option value="">-- เลือกแผนก --</option>' +
+
+    list.map(d =>
+
+      `<option value="${escAttr(d)}">
+        ${esc(d)}
+      </option>`
+
+    ).join('');
+
+  if(current){
+
+    sel.value = current;
+
+  }
+
+}
+
+
 function showRegister(){
 
-    document
-        .getElementById('loadingScreen')
-        .classList.add('hidden');
+  document
+    .getElementById('loadingScreen')
+    .classList.add('hidden');
 
+  document
+    .getElementById('app')
+    .classList.remove('hidden');
 
-    document
-        .getElementById('app')
-        .classList.remove('hidden');
+  hideAllViews();
 
+  document
+    .getElementById('registerSection')
+    .classList.remove('hidden');
 
-    hideAllViews();
-
-
-    document
-        .getElementById('registerSection')
-        .classList.remove('hidden');
-
-
-    populateDepartmentOptions();
-
-
-    runServer(
-        'getInitialData',
-        {
-            userId:currentUser.userId
-        }
-    )
-    .then(r=>{
-
-        if(
-            r &&
-            Array.isArray(r.departments)
-        ){
-
-            systemData.departments =
-                r.departments;
-
-            populateDepartmentOptions();
-
-        }
-
-    })
-    .catch(err=>{
-
-        console.warn(
-            'โหลด Department ไม่สำเร็จ',
-            err
-        );
-
-    });
+  populateDepartmentOptions();
 
 }
 
 
 document
-.getElementById('regForm')
-.addEventListener('submit',async function(e){
+  .getElementById('regForm')
+  .addEventListener(
+    'submit',
+    async function(e){
 
-    e.preventDefault();
+      e.preventDefault();
 
-
-    try{
+      try{
 
         const r = await runServer(
-            'registerUser',
-            {
-                line_user_id:currentUser.userId,
+          'registerUser',
+          {
+            line_user_id:currentUser.userId,
 
-                full_name:
-                    document
-                    .getElementById('regFullName')
-                    .value
-                    .trim(),
+            full_name:
+              document
+                .getElementById('regFullName')
+                .value
+                .trim(),
 
-                department:
-                    document
-                    .getElementById('regDept')
-                    .value
-                    .trim()
-                    .toUpperCase()
-            }
+            department:
+              document
+                .getElementById('regDept')
+                .value
+                .trim()
+                .toUpperCase()
+          }
         );
 
+        if(r.status !== 'success'){
 
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'ลงทะเบียนไม่สำเร็จ'
-            );
+          throw new Error(
+            r.message ||
+            'ลงทะเบียนไม่สำเร็จ'
+          );
 
         }
 
-
         toast(
-            'ลงทะเบียนสำเร็จ '+
-            (r.emp_id ? 'รหัสพนักงาน '+r.emp_id : ''),
-            'success'
+          'ลงทะเบียนสำเร็จ ' +
+          (r.emp_id || ''),
+          'success'
         );
-
 
         await checkUserAuth();
 
-
-    }catch(x){
-
-        console.error(x);
+      }catch(e){
 
         toast(
-            x.message ||
-            'ลงทะเบียนไม่สำเร็จ',
-            'error'
+          e.message,
+          'error'
         );
 
-    }
-
-});
-
-
-function populateDepartmentOptions(){
-
-    const defaultDepartments = [
-        'ENGINEERING',
-        'HOUSEKEEPING',
-        'FRONT OFFICE',
-        'FOOD & BEVERAGE',
-        'KITCHEN',
-        'SECURITY',
-        'HUMAN RESOURCES',
-        'ACCOUNTING',
-        'SALES & MARKETING',
-        'PURCHASING',
-        'BANQUET',
-        'SPA',
-        'OTHER'
-    ];
-
-
-    const list =
-        Array.isArray(systemData.departments) &&
-        systemData.departments.length
-            ? systemData.departments
-            : defaultDepartments;
-
-
-    const sel =
-        document.getElementById('regDept');
-
-
-    if(!sel)return;
-
-
-    const current = sel.value;
-
-
-    sel.innerHTML =
-        '<option value="">-- เลือกแผนก --</option>' +
-
-        list
-        .map(d =>
-            `<option value="${escAttr(d)}">
-                ${esc(d)}
-            </option>`
-        )
-        .join('');
-
-
-    if(current){
-
-        sel.value = current;
+      }
 
     }
-
-}
+  );
 
 
 /* =========================================================
-   UI
-========================================================= */
-
-function hideAllViews(){
-
-    document
-        .querySelectorAll('.view')
-        .forEach(x =>
-            x.classList.add('hidden')
-        );
-
-
-    document
-        .getElementById('registerSection')
-        .classList.add('hidden');
-
-}
-
-
-function showView(id){
-
-    hideAllViews();
-
-
-    const x =
-        document.getElementById(id);
-
-
-    if(x){
-
-        x.classList.remove('hidden');
-
-    }
-
-
-    window.scrollTo({
-        top:0,
-        behavior:'smooth'
-    });
-
-}
-
-
-function openTaskSection(){
-
-    showView('taskSection');
-
-    renderTaskList();
-
-}
-
-
-function openStockSection(){
-
-    showView('stockSection');
-
-    renderStock();
-
-}
-
-
-function openRequisitionSection(){
-
-    showView('requisitionSection');
-
-    renderRequisitions();
-
-}
-
-
-function openStaffSection(){
-
-    showView('staffSection');
-
-    renderStaff();
-
-}
-
-
-function openSettingsSection(){
-
-    showView('settingsSection');
-
-    renderSettings();
-
-}
-
-
-/* =========================================================
-   HEADER / PERMISSION
+   HEADER
 ========================================================= */
 
 function updateHeader(){
 
-    const name =
-        currentUser.fullName ||
-        currentUser.full_name ||
-        currentUser.displayName ||
-        'ผู้ใช้งาน';
+  const name =
+    currentUser.fullName ||
+    currentUser.full_name ||
+    currentUser.displayName ||
+    'ผู้ใช้งาน';
 
+  const dept =
+    currentUser.dept ||
+    currentUser.department ||
+    '-';
 
-    const dept =
-        currentUser.dept ||
-        currentUser.department ||
-        '-';
+  const role =
+    String(
+      currentUser.role ||
+      'REPORTER'
+    ).toUpperCase();
 
+  document
+    .getElementById('userProfileName')
+    .textContent = name;
 
-    const role =
-        String(
-            currentUser.role ||
-            'REPORTER'
-        ).toUpperCase();
+  document
+    .getElementById('userDeptRole')
+    .textContent =
+      dept + ' • ' + role;
 
+  document
+    .getElementById('topUserName')
+    .textContent = name;
+
+  if(currentUser.pictureUrl){
 
     document
-        .getElementById('userProfileName')
-        .textContent = name;
-
+      .getElementById('userProfilePicture')
+      .src =
+      currentUser.pictureUrl;
 
     document
-        .getElementById('userDeptRole')
-        .textContent =
-            dept+' • '+role;
+      .getElementById('topUserPicture')
+      .src =
+      currentUser.pictureUrl;
 
-
-    const img =
-        document.getElementById(
-            'userProfilePicture'
-        );
-
-
-    if(currentUser.pictureUrl){
-
-        img.src =
-            currentUser.pictureUrl;
-
-    }
+  }
 
 }
 
+
+/* =========================================================
+   PERMISSION
+========================================================= */
 
 function isAdmin(){
 
-    const role =
-        String(
-            currentUser?.role || ''
-        ).toUpperCase();
+  const role =
+    String(
+      currentUser?.role || ''
+    ).toUpperCase();
 
-
-    return (
-        role === 'ADMIN' ||
-        role === 'ADMINISTRATOR' ||
-        currentUser?.isAdmin === true ||
-        currentUser?.is_admin === true ||
-        systemData?.permissions?.ADMIN === true
-    );
+  return (
+    role === 'ADMIN' ||
+    role === 'ADMINISTRATOR' ||
+    currentUser.isAdmin === true ||
+    currentUser.is_admin === true ||
+    systemData.permissions?.ADMIN === true
+  );
 
 }
 
 
-function hasPermission(action){
+function hasPermission(permission){
 
-    if(isAdmin())return true;
-
-
-    return !!(
-        systemData &&
-        systemData.permissions &&
-        systemData.permissions[action] === true
-    );
+  return (
+    isAdmin() ||
+    (
+      systemData.permissions &&
+      systemData.permissions[permission] === true
+    )
+  );
 
 }
 
 
 function applyPermissions(){
 
-    const menu =
-        document.getElementById('adminMenu');
+  const menu =
+    document.getElementById('adminMenu');
 
+  if(
+    isAdmin() ||
+    hasPermission('VIEW_STAFF') ||
+    hasPermission('VIEW_STOCK') ||
+    hasPermission('VIEW_REQUISITIONS') ||
+    hasPermission('VIEW_SETTINGS')
+  ){
 
-    if(
-        isAdmin() ||
-        hasPermission('VIEW_STAFF') ||
-        hasPermission('VIEW_STOCK') ||
-        hasPermission('VIEW_REQUISITIONS') ||
-        hasPermission('VIEW_SETTINGS')
-    ){
+    menu.classList.remove('hidden');
 
-        menu.classList.remove('hidden');
+  }else{
 
-    }else{
+    menu.classList.add('hidden');
 
-        menu.classList.add('hidden');
-
-    }
+  }
 
 }
 
@@ -1824,32 +1798,71 @@ function applyPermissions(){
 
 function updateSummary(){
 
-    const s =
-        systemData.summary || {};
+  const s =
+    systemData.summary || {};
+
+  document.getElementById('sumNew')
+    .textContent =
+      Number(s.NEW || 0);
+
+  document.getElementById('sumProgress')
+    .textContent =
+      Number(s.IN_PROGRESS || 0);
+
+  document.getElementById('sumParts')
+    .textContent =
+      Number(s.WAITING_PARTS || 0);
+
+  document.getElementById('sumComplete')
+    .textContent =
+      Number(s.COMPLETED || 0);
+
+}
 
 
-    document
-        .getElementById('sumNew')
-        .textContent =
-            Number(s.NEW || 0);
+/* =========================================================
+   VIEW
+========================================================= */
+
+function hideAllViews(){
+
+  document
+    .querySelectorAll('.view')
+    .forEach(
+      x => x.classList.add('hidden')
+    );
+
+  document
+    .getElementById('registerSection')
+    .classList.add('hidden');
+
+}
 
 
-    document
-        .getElementById('sumProgress')
-        .textContent =
-            Number(s.IN_PROGRESS || 0);
+function showView(id){
+
+  hideAllViews();
+
+  const element =
+    document.getElementById(id);
+
+  if(element){
+
+    element.classList.remove('hidden');
+
+  }
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+}
 
 
-    document
-        .getElementById('sumParts')
-        .textContent =
-            Number(s.WAITING_PARTS || 0);
+async function reloadSystem(){
 
-
-    document
-        .getElementById('sumComplete')
-        .textContent =
-            Number(s.COMPLETED || 0);
+  await loadInitialData();
 
 }
 
@@ -1859,491 +1872,430 @@ function updateSummary(){
 ========================================================= */
 
 document
-.getElementById('repairForm')
-.addEventListener('submit',async function(e){
+  .getElementById('repairForm')
+  .addEventListener(
+    'submit',
+    async function(e){
 
-    e.preventDefault();
+      e.preventDefault();
 
-
-    const btn =
+      const button =
         document.getElementById(
-            'btnSubmitRepair'
+          'btnSubmitRepair'
         );
 
+      button.disabled = true;
 
-    btn.disabled = true;
-
-
-    try{
+      try{
 
         const photos =
-            await Promise.all(
-                pendingPhotoFiles.map(
-                    fileToPhotoPayload
-                )
-            );
-
+          await Promise.all(
+            pendingPhotoFiles.map(
+              fileToPhotoPayload
+            )
+          );
 
         const r =
-            await runServer(
-                'createTicket',
-                {
-                    line_user_id:
-                        currentUser.userId,
+          await runServer(
+            'createTicket',
+            {
 
-                    location:
-                        document
-                        .getElementById('repLocation')
-                        .value
-                        .trim(),
+              line_user_id:
+                currentUser.userId,
 
-                    locationName:
-                        document
-                        .getElementById('repLocation')
-                        .value
-                        .trim(),
+              location:
+                document
+                  .getElementById('repLocation')
+                  .value
+                  .trim(),
 
-                    category:
-                        document
-                        .getElementById('repCategory')
-                        .value,
+              locationName:
+                document
+                  .getElementById('repLocation')
+                  .value
+                  .trim(),
 
-                    priority:
-                        document
-                        .getElementById('repPriority')
-                        .value,
+              category:
+                document
+                  .getElementById('repCategory')
+                  .value,
 
-                    issue:
-                        document
-                        .getElementById('repIssue')
-                        .value
-                        .trim(),
+              priority:
+                document
+                  .getElementById('repPriority')
+                  .value,
 
-                    photos:photos
-                }
-            );
+              issue:
+                document
+                  .getElementById('repIssue')
+                  .value
+                  .trim(),
 
+              photos:photos
 
-        if(!r || r.status !== 'success'){
+            }
+          );
 
-            throw new Error(
-                r?.message ||
-                'ส่งรายการไม่สำเร็จ'
-            );
+        if(r.status !== 'success'){
+
+          throw new Error(
+            r.message ||
+            'ส่งรายการไม่สำเร็จ'
+          );
 
         }
 
-
         toast(
-            'แจ้งซ่อมสำเร็จ '+
-            (r.ticketNo
-                ? '#'+r.ticketNo
-                : ''),
-            'success'
+          'แจ้งซ่อมสำเร็จ #' +
+          (r.ticketNo || ''),
+          'success'
         );
-
 
         e.target.reset();
 
         document
-            .getElementById('repPhotos')
-            .value = '';
+          .getElementById('repPhotos')
+          .value = '';
 
         document
-            .getElementById('photoPreview')
-            .innerHTML = '';
+          .getElementById('photoPreview')
+          .innerHTML = '';
 
         pendingPhotoFiles = [];
 
-
         await loadInitialData();
 
-
-    }catch(x){
-
-        console.error(x);
+      }catch(e){
 
         toast(
-            x.message ||
-            'ส่งรายการไม่สำเร็จ',
-            'error'
+          e.message,
+          'error'
         );
 
-    }finally{
+      }finally{
 
-        btn.disabled = false;
+        button.disabled = false;
+
+      }
 
     }
-
-});
+  );
 
 
 function fileToPhotoPayload(file){
 
-    return new Promise(
-        (resolve,reject)=>{
+  return new Promise(
+    (resolve,reject)=>{
 
-            const reader =
-                new FileReader();
+      const reader =
+        new FileReader();
 
+      reader.onload =
+        e => resolve({
+          data:e.target.result,
+          mimeType:file.type,
+          name:file.name
+        });
 
-            reader.onload =
-                e =>
-                    resolve({
-                        data:e.target.result,
-                        mimeType:file.type,
-                        name:file.name
-                    });
+      reader.onerror = reject;
 
+      reader.readAsDataURL(file);
 
-            reader.onerror = reject;
-
-
-            reader.readAsDataURL(file);
-
-        }
-    );
+    }
+  );
 
 }
 
 
 document
-.getElementById('repPhotos')
-.addEventListener(
+  .getElementById('repPhotos')
+  .addEventListener(
     'change',
     function(){
 
-        const preview =
-            document.getElementById(
-                'photoPreview'
-            );
+      const preview =
+        document.getElementById(
+          'photoPreview'
+        );
 
+      preview.innerHTML = '';
 
-        preview.innerHTML = '';
+      pendingPhotoFiles =
+        Array.from(
+          this.files || []
+        )
+        .filter(
+          f => f.type.startsWith('image/')
+        )
+        .slice(0,4);
 
+      pendingPhotoFiles.forEach(
+        file => {
 
-        pendingPhotoFiles =
-            Array.from(
-                this.files || []
-            )
-            .filter(
-                f =>
-                    f.type.startsWith('image/')
-            )
-            .slice(0,4);
+          const reader =
+            new FileReader();
 
+          reader.onload =
+            e => {
 
-        pendingPhotoFiles.forEach(file=>{
+              const img =
+                document.createElement('img');
 
-            const reader =
-                new FileReader();
+              img.src =
+                e.target.result;
 
+              preview.appendChild(img);
 
-            reader.onload =
-                e => {
+            };
 
-                    const img =
-                        document.createElement('img');
+          reader.readAsDataURL(file);
 
-
-                    img.src =
-                        e.target.result;
-
-
-                    preview.appendChild(img);
-
-                };
-
-
-            reader.readAsDataURL(file);
-
-        });
+        }
+      );
 
     }
-);
+  );
 
 
 /* =========================================================
-   DASHBOARD
+   DASHBOARD TICKETS
 ========================================================= */
 
 function renderDashboardScopeTabs(){
 
-    const role =
-        String(
-            currentUser?.role || ''
-        ).toUpperCase();
+  const role =
+    String(
+      currentUser?.role || ''
+    ).toUpperCase();
 
+  const element =
+    document.getElementById(
+      'dashboardScopeTabs'
+    );
 
-    const el =
-        document.getElementById(
-            'dashboardScopeTabs'
-        );
+  if(!element)return;
 
+  if(role === 'TECHNICIAN'){
 
-    if(!el)return;
+    element.innerHTML = `
 
+      <button
+        class="${dashboardScope === 'SELF'
+          ? 'btn-blue'
+          : 'btn-secondary'} small-btn"
+        onclick="setDashboardScope('SELF')">
 
-    if(role === 'TECHNICIAN'){
+        งานของฉัน
 
-        el.innerHTML = `
+      </button>
 
-        <button
-            type="button"
-            class="${dashboardScope === 'SELF'
-                ? 'btn-blue'
-                : 'btn-secondary'} small-btn"
-            onclick="setDashboardScope('SELF')">
+      <button
+        class="${dashboardScope === 'DEPARTMENT'
+          ? 'btn-blue'
+          : 'btn-secondary'} small-btn"
+        onclick="setDashboardScope('DEPARTMENT')">
 
-            งานของฉัน
+        งานแผนก
 
-        </button>
+      </button>
+    `;
 
-        <button
-            type="button"
-            class="${dashboardScope === 'DEPARTMENT'
-                ? 'btn-blue'
-                : 'btn-secondary'} small-btn"
-            onclick="setDashboardScope('DEPARTMENT')">
+  }else if(role === 'SUPERVISOR'){
 
-            งานแผนก
+    element.innerHTML =
+      `<button class="btn-blue small-btn">
+        งานแผนก
+      </button>`;
 
-        </button>
+  }else if(role === 'ADMIN'){
 
-        `;
+    element.innerHTML =
+      `<button class="btn-blue small-btn">
+        ทั้งหมด
+      </button>`;
 
-    }else if(role === 'SUPERVISOR'){
+  }else{
 
-        el.innerHTML = `
+    element.innerHTML =
+      `<button class="btn-blue small-btn">
+        งานของฉัน
+      </button>`;
 
-        <button
-            type="button"
-            class="btn-blue small-btn">
-
-            งานแผนก
-
-        </button>
-
-        `;
-
-    }else if(role === 'ADMIN'){
-
-        el.innerHTML = `
-
-        <button
-            type="button"
-            class="btn-blue small-btn">
-
-            ทั้งหมด
-
-        </button>
-
-        `;
-
-    }else{
-
-        el.innerHTML = `
-
-        <button
-            type="button"
-            class="btn-blue small-btn">
-
-            งานของฉัน
-
-        </button>
-
-        `;
-
-    }
+  }
 
 }
 
 
 function setDashboardScope(scope){
 
-    dashboardScope = scope;
+  dashboardScope = scope;
 
-    renderDashboardScopeTabs();
+  renderDashboardScopeTabs();
 
-    renderDashboardTickets();
+  renderDashboardTickets();
 
 }
 
 
 function getDashboardTickets(){
 
-    const role =
-        String(
-            currentUser?.role || ''
-        ).toUpperCase();
+  const role =
+    String(
+      currentUser?.role || ''
+    ).toUpperCase();
 
+  if(
+    role === 'TECHNICIAN' &&
+    dashboardScope === 'DEPARTMENT'
+  ){
 
-    if(
-        role === 'TECHNICIAN' &&
-        dashboardScope === 'DEPARTMENT'
-    ){
+    return systemData.departmentTickets || [];
 
-        return systemData.departmentTickets || [];
+  }
 
-    }
-
-
-    return systemData.tickets || [];
+  return systemData.tickets || [];
 
 }
 
 
 function renderDashboardTickets(){
 
-    const list =
-        getDashboardTickets();
+  const tickets =
+    getDashboardTickets();
 
+  const element =
+    document.getElementById(
+      'dashboardTicketList'
+    );
 
-    const el =
-        document.getElementById(
-            'dashboardTicketList'
+  element.innerHTML =
+    tickets.length
+
+      ? tickets
+          .slice(0,10)
+          .map(recentTicketRowHtml)
+          .join('')
+
+      : emptyHtml(
+          '📭',
+          'ยังไม่มีรายการแจ้งซ่อม'
         );
-
-
-    if(!el)return;
-
-
-    el.innerHTML =
-        list.length
-            ? list
-                .slice(0,10)
-                .map(recentTicketRowHtml)
-                .join('')
-            : emptyHtml(
-                '📭',
-                'ยังไม่มีรายการแจ้งซ่อม'
-            );
 
 }
 
+
+/* =========================================================
+   STATUS
+========================================================= */
 
 function statusBadgeHtml(status){
 
-    const s =
-        String(
-            status || 'NEW'
-        ).toUpperCase();
+  const s =
+    String(
+      status || 'NEW'
+    ).toUpperCase();
 
+  const meta = {
 
-    const meta = {
+    NEW:[
+      'badge-new',
+      'NEW'
+    ],
 
-        NEW:[
-            'badge-new',
-            'NEW'
-        ],
+    ASSIGNED:[
+      'badge-progress',
+      'ASSIGNED'
+    ],
 
-        ASSIGNED:[
-            'badge-progress',
-            'ASSIGNED'
-        ],
+    IN_PROGRESS:[
+      'badge-progress',
+      'IN PROGRESS'
+    ],
 
-        IN_PROGRESS:[
-            'badge-progress',
-            'IN PROGRESS'
-        ],
+    WAITING_PARTS:[
+      'badge-parts',
+      'WAITING PARTS'
+    ],
 
-        WAITING_PARTS:[
-            'badge-parts',
-            'WAITING PARTS'
-        ],
+    COMPLETED:[
+      'badge-completed',
+      'COMPLETED'
+    ],
 
-        COMPLETED:[
-            'badge-completed',
-            'COMPLETED'
-        ],
+    CANCELLED:[
+      'badge-cancelled',
+      'CANCELLED'
+    ]
 
-        CANCELLED:[
-            'badge-cancelled',
-            'CANCELLED'
-        ]
+  }[s] || ['',s];
 
-    }[s] || [
-        '',
-        s
-    ];
-
-
-    return `
+  return `
     <span class="badge ${meta[0]}">
-        <i class="status-dot"></i>
-        ${esc(meta[1])}
+      <i class="status-dot"></i>
+      ${esc(meta[1])}
     </span>
-    `;
+  `;
 
 }
 
 
+/* =========================================================
+   RECENT
+========================================================= */
+
 function recentTicketRowHtml(t){
 
-    const p =
-        String(
-            t.priority || 'NORMAL'
-        ).toUpperCase();
+  return `
+    <div class="ticket-card">
 
+      <div class="ticket-top">
 
-    const pc = {
+        <div>
 
-        LOW:'priority-low',
-        NORMAL:'priority-normal',
-        HIGH:'priority-high',
-        URGENT:'priority-urgent'
-
-    }[p] || 'priority-normal';
-
-
-    const pl = {
-
-        LOW:'ต่ำ',
-        NORMAL:'ปกติ',
-        HIGH:'สูง',
-        URGENT:'ด่วนมาก'
-
-    }[p] || 'ปกติ';
-
-
-    return `
-
-    <div class="recent-row">
-
-        <div class="recent-ticket">
+          <div class="ticket-no">
             ${esc(t.ticket_no || '-')}
-        </div>
+          </div>
 
-        <div class="recent-location">
+          <div class="ticket-location">
             📍 ${esc(t.location || '-')}
-        </div>
+          </div>
 
-        <div class="recent-issue">
-            ${esc(t.issue || '-')}
         </div>
 
         ${statusBadgeHtml(t.status)}
 
-        <span class="recent-priority ${pc}">
-            ${esc(pl)}
-        </span>
+      </div>
 
-        <div class="recent-tech">
-            🔧 ${esc(t.technician || '-')}
+      <div class="ticket-issue">
+        ${esc(t.issue || '-')}
+      </div>
+
+      <div class="ticket-meta">
+
+        <div>
+          👤 ${esc(t.reporter || '-')}
         </div>
 
-        <button
-            type="button"
-            class="btn-secondary small-btn"
-            onclick="viewTicket('${escAttr(t.ticket_no || '')}')">
+        <div>
+          🔧 ${esc(t.technician || '-')}
+        </div>
 
-            ดู
+      </div>
+
+      <div class="ticket-actions">
+
+        <button
+          class="btn-secondary"
+          onclick="viewTicket('${escAttr(t.ticket_no)}')">
+
+          ดูรายละเอียด
 
         </button>
 
-    </div>
+      </div>
 
-    `;
+    </div>
+  `;
 
 }
 
@@ -2354,322 +2306,285 @@ function recentTicketRowHtml(t){
 
 function renderTaskList(){
 
-    let list =
-        systemData.tickets || [];
+  let tickets =
+    systemData.tickets || [];
 
+  const filter =
+    document.getElementById(
+      'taskStatusFilter'
+    ).value;
 
-    const filter =
-        document
-        .getElementById('taskStatusFilter')
-        ?.value || '';
+  if(filter){
 
+    tickets =
+      tickets.filter(
+        x =>
+          String(
+            x.status || ''
+          ).toUpperCase() === filter
+      );
 
-    if(filter){
+  }
 
-        list =
-            list.filter(
-                x =>
-                    String(
-                        x.status || ''
-                    ).toUpperCase() === filter
-            );
+  document.getElementById(
+    'taskList'
+  ).innerHTML =
 
-    }
+    tickets.length
 
+      ? tickets
+          .map(ticketCardHtml)
+          .join('')
 
-    const el =
-        document.getElementById(
-            'taskList'
+      : emptyHtml(
+          '📭',
+          'ไม่พบรายการงาน'
         );
-
-
-    if(!el)return;
-
-
-    el.innerHTML =
-        list.length
-            ? list.map(ticketCardHtml).join('')
-            : emptyHtml(
-                '📭',
-                'ไม่พบรายการงาน'
-            );
 
 }
 
 
 function ticketCardHtml(t){
 
-    return `
-
+  return `
     <div class="ticket-card">
 
-        <div class="ticket-top">
+      <div class="ticket-top">
 
-            <div>
+        <div>
 
-                <div class="ticket-no">
-                    ${esc(t.ticket_no || '-')}
-                </div>
+          <div class="ticket-no">
+            ${esc(t.ticket_no || '-')}
+          </div>
 
-                <div class="ticket-location">
-                    📍 ${esc(t.location || '-')}
-                </div>
-
-            </div>
-
-            ${statusBadgeHtml(t.status)}
+          <div class="ticket-location">
+            📍 ${esc(t.location || '-')}
+          </div>
 
         </div>
 
+        ${statusBadgeHtml(t.status)}
 
-        <div class="ticket-issue">
-            ${esc(t.issue || '-')}
+      </div>
+
+      <div class="ticket-issue">
+        ${esc(t.issue || '-')}
+      </div>
+
+      <div class="ticket-meta">
+
+        <div>
+          👤 ${esc(t.reporter || '-')}
         </div>
 
-
-        <div class="ticket-meta">
-
-            <div>
-                👤 ${esc(t.reporter || '-')}
-            </div>
-
-            <div>
-                🔧 ${esc(t.technician || '-')}
-            </div>
-
-            <div>
-                🏢 ${esc(t.department || '-')}
-            </div>
-
-            <div>
-                🕒 ${esc(formatDateValue(t.created_at))}
-            </div>
-
+        <div>
+          🔧 ${esc(t.technician || '-')}
         </div>
 
-
-        <div class="ticket-actions">
-
-            <button
-                type="button"
-                class="btn-secondary"
-                onclick="viewTicket('${escAttr(t.ticket_no || '')}')">
-
-                รายละเอียด
-
-            </button>
-
-            ${ticketActionButtons(t)}
-
+        <div>
+          🏢 ${esc(t.department || '-')}
         </div>
+
+        <div>
+          🕒 ${esc(formatDateValue(t.created_at))}
+        </div>
+
+      </div>
+
+      <div class="ticket-actions">
+
+        <button
+          class="btn-secondary"
+          onclick="viewTicket('${escAttr(t.ticket_no)}')">
+
+          รายละเอียด
+
+        </button>
+
+        ${ticketActionButtons(t)}
+
+      </div>
 
     </div>
-
-    `;
+  `;
 
 }
 
 
+/* =========================================================
+   TICKET ACTION
+========================================================= */
+
 function ticketActionButtons(t){
 
-    const s =
-        String(
-            t.status || ''
-        ).toUpperCase();
+  const s =
+    String(
+      t.status || ''
+    ).toUpperCase();
 
+  const buttons = [];
 
-    const b = [];
+  if(
+    s === 'NEW' &&
+    hasPermission('CHANGE_STATUS')
+  ){
 
+    buttons.push(`
+      <button
+        class="btn-blue"
+        onclick="changeTicketStatus(
+          '${escAttr(t.ticket_no)}',
+          'ASSIGNED'
+        )">
 
-    if(
-        s === 'NEW' &&
-        hasPermission('CHANGE_STATUS')
-    ){
+        ▶ มอบหมายงาน
 
-        b.push(`
+      </button>
+    `);
 
+  }
+
+  if(
+    s === 'ASSIGNED' &&
+    hasPermission('CHANGE_STATUS')
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-blue"
+        onclick="changeTicketStatus(
+          '${escAttr(t.ticket_no)}',
+          'IN_PROGRESS'
+        )">
+
+        ▶ เริ่มงาน
+
+      </button>
+    `);
+
+  }
+
+  if(
+    s === 'IN_PROGRESS' &&
+    hasPermission('CHANGE_STATUS')
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-purple"
+        onclick="changeTicketStatus(
+          '${escAttr(t.ticket_no)}',
+          'WAITING_PARTS'
+        )">
+
+        📦 รออะไหล่
+
+      </button>
+    `);
+
+  }
+
+  if(
+    s === 'WAITING_PARTS' &&
+    hasPermission('CHANGE_STATUS')
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-blue"
+        onclick="changeTicketStatus(
+          '${escAttr(t.ticket_no)}',
+          'IN_PROGRESS'
+        )">
+
+        ▶ ทำงานต่อ
+
+      </button>
+    `);
+
+  }
+
+  if(
+    (
+      s === 'IN_PROGRESS' ||
+      s === 'WAITING_PARTS'
+    ) &&
+    hasPermission('STOCK_OUT')
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-warning"
+        onclick="openStockMove(
+          'OUT',
+          '${escAttr(t.ticket_no)}'
+        )">
+
+        📤 เบิกของ
+
+      </button>
+    `);
+
+  }
+
+  if(
+    s === 'IN_PROGRESS' &&
+    hasPermission('CLOSE_TICKET')
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-success"
+        onclick="completeTicket(
+          '${escAttr(t.ticket_no)}'
+        )">
+
+        ✓ เสร็จงาน
+
+      </button>
+    `);
+
+  }
+
+  if(
+    hasPermission(
+      'PRINT_PENDING_PARTS_PDF'
+    )
+  ){
+
+    if(s === 'WAITING_PARTS'){
+
+      buttons.push(`
         <button
-            type="button"
-            class="btn-blue"
-            onclick="changeTicketStatus(
-                '${escAttr(t.ticket_no)}',
-                'ASSIGNED'
-            )">
+          class="btn-purple"
+          onclick="createPendingPartsPDFUI(
+            '${escAttr(t.ticket_no)}'
+          )">
 
-            ▶ มอบหมายงาน
+          📄 PDF ใบเบิกอะไหล่
 
         </button>
+      `);
 
-        `);
+    }else{
+
+      buttons.push(`
+        <button
+          class="btn-purple"
+          onclick="createTicketPDFUI(
+            '${escAttr(t.ticket_no)}'
+          )">
+
+          📄 PDF
+
+        </button>
+      `);
 
     }
 
+  }
 
-    if(
-        s === 'ASSIGNED' &&
-        hasPermission('CHANGE_STATUS')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-blue"
-            onclick="changeTicketStatus(
-                '${escAttr(t.ticket_no)}',
-                'IN_PROGRESS'
-            )">
-
-            ▶ เริ่มงาน
-
-        </button>
-
-        `);
-
-    }
-
-
-    if(
-        s === 'IN_PROGRESS' &&
-        hasPermission('CHANGE_STATUS')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-purple"
-            onclick="changeTicketStatus(
-                '${escAttr(t.ticket_no)}',
-                'WAITING_PARTS'
-            )">
-
-            📦 รออะไหล่
-
-        </button>
-
-        `);
-
-    }
-
-
-    if(
-        s === 'WAITING_PARTS' &&
-        hasPermission('CHANGE_STATUS')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-blue"
-            onclick="changeTicketStatus(
-                '${escAttr(t.ticket_no)}',
-                'IN_PROGRESS'
-            )">
-
-            ▶ ได้อะไหล่ / ทำต่อ
-
-        </button>
-
-        `);
-
-    }
-
-
-    if(
-        (
-            s === 'IN_PROGRESS' ||
-            s === 'WAITING_PARTS'
-        ) &&
-        hasPermission('STOCK_OUT')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-warning"
-            onclick="openStockMove(
-                'OUT',
-                '${escAttr(t.ticket_no)}'
-            )">
-
-            📤 เบิกของ
-
-        </button>
-
-        `);
-
-    }
-
-
-    if(
-        s === 'IN_PROGRESS' &&
-        hasPermission('CLOSE_TICKET')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-success"
-            onclick="completeTicket(
-                '${escAttr(t.ticket_no)}'
-            )">
-
-            ✓ เสร็จงาน
-
-        </button>
-
-        `);
-
-    }
-
-
-    if(
-        s === 'WAITING_PARTS' &&
-        hasPermission('PRINT_PENDING_PARTS_PDF')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-purple"
-            onclick="createPendingPartsPDFUI(
-                '${escAttr(t.ticket_no)}'
-            )">
-
-            📄 PDF ใบเบิกอะไหล่
-
-        </button>
-
-        `);
-
-    }else if(
-        hasPermission('PRINT_PENDING_PARTS_PDF')
-    ){
-
-        b.push(`
-
-        <button
-            type="button"
-            class="btn-purple"
-            onclick="createTicketPDFUI(
-                '${escAttr(t.ticket_no)}'
-            )">
-
-            📄 PDF
-
-        </button>
-
-        `);
-
-    }
-
-
-    return b.join('');
+  return buttons.join('');
 
 }
 
@@ -2680,506 +2595,184 @@ function ticketActionButtons(t){
 
 function viewTicket(no){
 
-    const t =
-        (systemData.tickets || [])
-        .find(
-            x =>
-                String(x.ticket_no) === String(no)
-        ) ||
-
-        (systemData.departmentTickets || [])
-        .find(
-            x =>
-                String(x.ticket_no) === String(no)
-        );
-
-
-    if(!t)return;
-
-
-    document
-        .getElementById('modalTitle')
-        .textContent =
-            '🔧 '+no;
-
-
-    const photos =
-        t.photo_list || [];
-
-
-    const role =
-        String(
-            currentUser?.role || ''
-        ).toUpperCase();
-
-
-    const canEdit =
-        (
-            role === 'ADMIN' ||
-            role === 'SUPERVISOR' ||
-            (
-                role === 'TECHNICIAN' &&
-                String(
-                    t.department || ''
-                ).toUpperCase() ===
-                String(
-                    currentUser?.dept || ''
-                ).toUpperCase()
-            ) ||
-            (
-                role === 'REPORTER' &&
-                String(
-                    t.line_user_id || ''
-                ) ===
-                String(
-                    currentUser?.userId || ''
-                )
-            )
-        ) &&
-        ![
-            'COMPLETED',
-            'CANCELLED'
-        ].includes(
-            String(
-                t.status || ''
-            ).toUpperCase()
-        );
-
-
-    document
-        .getElementById('modalBody')
-        .innerHTML = `
-
-        <p>
-            <b>สถานที่:</b>
-            ${esc(t.location || '-')}
-        </p>
-
-        <p>
-            <b>หมวดหมู่:</b>
-            ${esc(t.category || '-')}
-        </p>
-
-        <p>
-            <b>ระดับความด่วน:</b>
-            ${esc(
-                {
-                    LOW:'ต่ำ',
-                    NORMAL:'ปกติ',
-                    HIGH:'สูง',
-                    URGENT:'ด่วนมาก'
-                }[
-                    String(
-                        t.priority || 'NORMAL'
-                    ).toUpperCase()
-                ] || 'ปกติ'
-            )}
-        </p>
-
-        <p>
-            <b>รายละเอียด:</b>
-            ${esc(t.issue || '-')}
-        </p>
-
-        <p>
-            <b>ผู้แจ้ง:</b>
-            ${esc(t.reporter || '-')}
-        </p>
-
-        <p>
-            <b>ช่าง:</b>
-            ${esc(t.technician || '-')}
-        </p>
-
-        <p>
-            <b>สถานะ:</b>
-            ${statusBadgeHtml(t.status)}
-        </p>
-
-        <p>
-            <b>หมายเหตุ / รายละเอียดจบงาน:</b>
-            ${esc(t.work_note || '-')}
-        </p>
-
-        ${
-            photos.length
-                ? `
-                <div class="photo-preview">
-                    ${photos.map(
-                        u =>
-                            `<img src="${escAttr(u)}">`
-                    ).join('')}
-                </div>
-                `
-                : ''
-        }
-
-        <div class="ticket-actions">
-
-            ${
-                canEdit
-                    ? `
-                    <button
-                        type="button"
-                        class="btn-blue"
-                        onclick="editTicket(
-                            '${escAttr(t.ticket_no)}'
-                        )">
-
-                        ✏️ แก้ไข
-
-                    </button>
-                    `
-                    : ''
-            }
-
-
-            ${
-                hasPermission(
-                    'PRINT_PENDING_PARTS_PDF'
-                )
-                    ? (
-                        String(
-                            t.status || ''
-                        ).toUpperCase() ===
-                        'WAITING_PARTS'
-
-                            ? `
-                            <button
-                                type="button"
-                                class="btn-purple"
-                                onclick="createPendingPartsPDFUI(
-                                    '${escAttr(t.ticket_no)}'
-                                )">
-
-                                📄 PDF ใบเบิกอะไหล่
-
-                            </button>
-                            `
-
-                            : `
-                            <button
-                                type="button"
-                                class="btn-purple"
-                                onclick="createTicketPDFUI(
-                                    '${escAttr(t.ticket_no)}'
-                                )">
-
-                                📄 ออก PDF
-
-                            </button>
-                            `
-                    )
-                    : ''
-            }
-
-        </div>
-
-        `;
-
-
-    openModal();
-
-}
-
-
-/* =========================================================
-   EDIT TICKET
-========================================================= */
-
-function editTicket(no){
-
-    const t =
-        (systemData.tickets || [])
-        .find(
-            x =>
-                String(x.ticket_no) === String(no)
-        ) ||
-
-        (systemData.departmentTickets || [])
-        .find(
-            x =>
-                String(x.ticket_no) === String(no)
-        );
-
-
-    if(!t)return;
-
-
-    document
-        .getElementById('modalTitle')
-        .textContent =
-            '✏️ แก้ไขงาน '+no;
-
-
-    document
-        .getElementById('modalBody')
-        .innerHTML = `
-
-        <div class="form-group">
-
-            <label>
-                สถานที่ / เลขห้อง
-            </label>
-
-            <input
-                id="editTicketLocation"
-                value="${escAttr(t.location || '')}"
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                หมวดหมู่งาน
-            </label>
-
-            <select id="editTicketCategory">
-
-                <option value="ELECTRICAL">
-                    ไฟฟ้า / แสงสว่าง
-                </option>
-
-                <option value="PLUMBING">
-                    ประปา / สุขภัณฑ์
-                </option>
-
-                <option value="HVAC">
-                    ระบบปรับอากาศ
-                </option>
-
-                <option value="FURNITURE">
-                    เฟอร์นิเจอร์ / อาคาร
-                </option>
-
-                <option value="OTHER">
-                    อื่น ๆ
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                ระดับความด่วน
-            </label>
-
-            <select id="editTicketPriority">
-
-                <option value="LOW">ต่ำ</option>
-                <option value="NORMAL">ปกติ</option>
-                <option value="HIGH">สูง</option>
-                <option value="URGENT">ด่วนมาก</option>
-
-            </select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                อาการ / รายละเอียด
-            </label>
-
-            <textarea id="editTicketIssue">${esc(
-                t.issue || ''
-            )}</textarea>
-
-        </div>
-
-
-        <div class="ticket-actions">
-
-            <button
-                type="button"
-                class="btn-secondary"
-                onclick="viewTicket(
-                    '${escAttr(no)}'
-                )">
-
-                ยกเลิก
-
-            </button>
-
-
-            <button
-                type="button"
-                class="btn-primary"
-                onclick="saveTicketEdit(
-                    '${escAttr(no)}'
-                )">
-
-                💾 บันทึก
-
-            </button>
-
-        </div>
-
-        `;
-
-
-    document
-        .getElementById('editTicketCategory')
-        .value =
-            t.category || 'OTHER';
-
-
-    document
-        .getElementById('editTicketPriority')
-        .value =
-            t.priority || 'NORMAL';
-
-
-    openModal();
-
-}
-
-
-async function saveTicketEdit(no){
-
-    try{
-
-        const r =
-            await runServer(
-                'updateTicket',
-                {
-                    line_user_id:
-                        currentUser.userId,
-
-                    ticketNo:no,
-
-                    location:
-                        document
-                        .getElementById(
-                            'editTicketLocation'
-                        )
-                        .value
-                        .trim(),
-
-                    category:
-                        document
-                        .getElementById(
-                            'editTicketCategory'
-                        )
-                        .value,
-
-                    priority:
-                        document
-                        .getElementById(
-                            'editTicketPriority'
-                        )
-                        .value,
-
-                    issue:
-                        document
-                        .getElementById(
-                            'editTicketIssue'
-                        )
-                        .value
-                        .trim()
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'แก้ไขงานไม่สำเร็จ'
-            );
-
-        }
-
-
-        toast(
-            'แก้ไขงานสำเร็จ',
-            'success'
-        );
-
-
-        closeModal();
-
-        await loadInitialData();
-
-        showView('taskSection');
-
-        renderTaskList();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
-
+  const ticket =
+    (systemData.tickets || [])
+      .find(
+        x =>
+          String(x.ticket_no) === String(no)
+      ) ||
+
+    (systemData.departmentTickets || [])
+      .find(
+        x =>
+          String(x.ticket_no) === String(no)
+      );
+
+  if(!ticket)return;
+
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    '🔧 ' + no;
+
+  const photos =
+    ticket.photo_list || [];
+
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
+
+    <p>
+      <b>สถานที่:</b>
+      ${esc(ticket.location || '-')}
+    </p>
+
+    <p>
+      <b>หมวดหมู่:</b>
+      ${esc(ticket.category || '-')}
+    </p>
+
+    <p>
+      <b>ระดับความด่วน:</b>
+      ${esc(ticket.priority || '-')}
+    </p>
+
+    <p>
+      <b>รายละเอียด:</b>
+      ${esc(ticket.issue || '-')}
+    </p>
+
+    <p>
+      <b>ผู้แจ้ง:</b>
+      ${esc(ticket.reporter || '-')}
+    </p>
+
+    <p>
+      <b>ช่าง:</b>
+      ${esc(ticket.technician || '-')}
+    </p>
+
+    <p>
+      <b>สถานะ:</b>
+      ${statusBadgeHtml(ticket.status)}
+    </p>
+
+    <p>
+      <b>หมายเหตุ:</b>
+      ${esc(ticket.work_note || '-')}
+    </p>
+
+    ${
+      photos.length
+
+        ? `
+          <div class="photo-preview">
+
+            ${photos.map(
+              url =>
+                `<img src="${escAttr(url)}">`
+            ).join('')}
+
+          </div>
+        `
+
+        : ''
     }
 
+    <div class="ticket-actions">
+
+      ${
+        hasPermission('PRINT_PENDING_PARTS_PDF')
+
+          ? String(ticket.status).toUpperCase()
+              === 'WAITING_PARTS'
+
+            ? `
+              <button
+                class="btn-purple"
+                onclick="createPendingPartsPDFUI(
+                  '${escAttr(no)}'
+                )">
+
+                📄 PDF ใบเบิกอะไหล่
+
+              </button>
+            `
+
+            : `
+              <button
+                class="btn-purple"
+                onclick="createTicketPDFUI(
+                  '${escAttr(no)}'
+                )">
+
+                📄 ออก PDF
+
+              </button>
+            `
+
+          : ''
+      }
+
+    </div>
+  `;
+
+  openModal();
+
 }
 
 
 /* =========================================================
-   STATUS
+   STATUS UPDATE
 ========================================================= */
 
 async function changeTicketStatus(no,status){
 
-    try{
+  try{
 
-        const r =
-            await runServer(
-                'updateTicketStatus',
-                {
-                    line_user_id:
-                        currentUser.userId,
+    const r =
+      await runServer(
+        'updateTicketStatus',
+        {
+          line_user_id:
+            currentUser.userId,
 
-                    ticketNo:no,
+          ticketNo:no,
 
-                    status:status,
+          status:status,
 
-                    note:''
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'เปลี่ยนสถานะไม่สำเร็จ'
-            );
-
+          note:''
         }
+      );
 
+    if(r.status !== 'success'){
 
-        toast(
-            'เปลี่ยนสถานะสำเร็จ',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-        showView('taskSection');
-
-        renderTaskList();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'เปลี่ยนสถานะไม่สำเร็จ'
+      );
 
     }
+
+    toast(
+      'เปลี่ยนสถานะสำเร็จ',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('taskSection');
+
+    renderTaskList();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
@@ -3188,212 +2781,50 @@ async function changeTicketStatus(no,status){
    COMPLETE
 ========================================================= */
 
-function askWorkNote(){
-
-    return new Promise(resolve=>{
-
-        modalPromptResolve = resolve;
-
-
-        document
-            .getElementById('modalTitle')
-            .textContent =
-                'หมายเหตุ / รายละเอียด';
-
-
-        document
-            .getElementById('modalBody')
-            .innerHTML = `
-
-            <div class="form-group">
-
-                <textarea
-                    id="workNoteInput"
-                    rows="4"
-                    placeholder="ไม่ใส่ก็ได้">
-                </textarea>
-
-            </div>
-
-
-            <div
-                style="
-                    display:flex;
-                    gap:8px;
-                    justify-content:flex-end;
-                    margin-top:12px
-                ">
-
-                <button
-                    type="button"
-                    class="btn-secondary"
-                    onclick="closeModal()">
-
-                    ยกเลิก
-
-                </button>
-
-
-                <button
-                    type="button"
-                    class="btn-primary"
-                    onclick="confirmWorkNote()">
-
-                    ตกลง
-
-                </button>
-
-            </div>
-
-            `;
-
-
-        openModal();
-
-
-        setTimeout(
-            ()=>{
-                document
-                    .getElementById(
-                        'workNoteInput'
-                    )
-                    ?.focus();
-            },
-            50
-        );
-
-    });
-
-}
-
-
-function confirmWorkNote(){
-
-    const v =
-        (
-            document
-            .getElementById(
-                'workNoteInput'
-            )
-            ?.value || ''
-        ).trim();
-
-
-    if(modalPromptResolve){
-
-        const r =
-            modalPromptResolve;
-
-
-        modalPromptResolve = null;
-
-
-        closeModal(false);
-
-
-        r(v);
-
-    }
-
-}
-
-
 async function completeTicket(no){
 
-    try{
+  try{
 
-        const notes =
-            await askWorkNote();
+    const notes =
+      await askWorkNote();
 
+    const r =
+      await runServer(
+        'closeTicket',
+        {
+          line_user_id:
+            currentUser.userId,
 
-        const r =
-            await runServer(
-                'closeTicket',
-                {
-                    line_user_id:
-                        currentUser.userId,
+          ticketNo:no,
 
-                    ticketNo:no,
-
-                    notes:notes || ''
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'ปิดงานไม่สำเร็จ'
-            );
-
+          notes:notes || ''
         }
+      );
 
+    if(r.status !== 'success'){
 
-        toast(
-            'ปิดงานสำเร็จ',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'ปิดงานไม่สำเร็จ'
+      );
 
     }
 
-}
+    toast(
+      'ปิดงานสำเร็จ',
+      'success'
+    );
 
+    await loadInitialData();
 
-async function reopenTicketUI(no){
+  }catch(e){
 
-    try{
+    toast(
+      e.message,
+      'error'
+    );
 
-        const r =
-            await runServer(
-                'reopenTicket',
-                {
-                    line_user_id:
-                        currentUser.userId,
-
-                    ticketNo:no
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'เปิดงานใหม่ไม่สำเร็จ'
-            );
-
-        }
-
-
-        toast(
-            'เปิดงานใหม่แล้ว',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
-
-    }
+  }
 
 }
 
@@ -3404,108 +2835,100 @@ async function reopenTicketUI(no){
 
 async function createPendingPartsPDFUI(no){
 
-    try{
+  try{
 
-        const r =
-            await runServer(
-                'createPendingPartsPDF',
-                {
-                    line_user_id:
-                        currentUser.userId,
+    const r =
+      await runServer(
+        'createPendingPartsPDF',
+        {
+          line_user_id:
+            currentUser.userId,
 
-                    ticketNo:no
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'สร้าง PDF ไม่สำเร็จ'
-            );
-
+          ticketNo:no
         }
+      );
 
+    if(r.status !== 'success'){
 
-        if(r.pdfUrl){
-
-            window.open(
-                r.pdfUrl,
-                '_blank'
-            );
-
-        }
-
-
-        toast(
-            'สร้าง PDF สำเร็จ',
-            'success'
-        );
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'สร้าง PDF ไม่สำเร็จ'
+      );
 
     }
+
+    if(r.pdfUrl){
+
+      window.open(
+        r.pdfUrl,
+        '_blank'
+      );
+
+    }
+
+    toast(
+      'สร้าง PDF สำเร็จ',
+      'success'
+    );
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
 
 async function createTicketPDFUI(no){
 
-    try{
+  try{
 
-        const r =
-            await runServer(
-                'createTicketPDF',
-                {
-                    line_user_id:
-                        currentUser.userId,
+    const r =
+      await runServer(
+        'createTicketPDF',
+        {
+          line_user_id:
+            currentUser.userId,
 
-                    ticketNo:no
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'สร้าง PDF ไม่สำเร็จ'
-            );
-
+          ticketNo:no
         }
+      );
 
+    if(r.status !== 'success'){
 
-        if(r.pdfUrl){
-
-            window.open(
-                r.pdfUrl,
-                '_blank'
-            );
-
-        }
-
-
-        toast(
-            'สร้าง PDF สำเร็จ',
-            'success'
-        );
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'สร้าง PDF ไม่สำเร็จ'
+      );
 
     }
+
+    if(r.pdfUrl){
+
+      window.open(
+        r.pdfUrl,
+        '_blank'
+      );
+
+    }
+
+    toast(
+      'สร้าง PDF สำเร็จ',
+      'success'
+    );
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
@@ -3516,441 +2939,307 @@ async function createTicketPDFUI(no){
 
 function renderStock(){
 
-    const a =
-        systemData.inventory || [];
+  const inventory =
+    systemData.inventory || [];
 
+  const element =
+    document.getElementById(
+      'stockList'
+    );
 
-    const el =
-        document.getElementById(
-            'stockList'
-        );
+  if(!inventory.length){
 
+    element.innerHTML =
+      emptyHtml(
+        '📦',
+        'ไม่พบข้อมูล Stock'
+      );
 
-    if(!el)return;
+    return;
 
+  }
 
-    if(!a.length){
-
-        el.innerHTML =
-            emptyHtml(
-                '📦',
-                'ไม่พบข้อมูล Stock'
-            );
-
-        return;
-
-    }
-
-
-    el.innerHTML = `
+  element.innerHTML = `
 
     <div class="table-wrap">
 
-    <table>
+      <table>
 
-    <thead>
+        <thead>
 
-    <tr>
-        <th>รหัส</th>
-        <th>รายการ</th>
-        <th>หน่วย</th>
-        <th>Stock</th>
-        <th>Min</th>
-        <th>สถานะ</th>
-    </tr>
+          <tr>
+            <th>รหัส</th>
+            <th>รายการ</th>
+            <th>หน่วย</th>
+            <th>Stock</th>
+            <th>Min</th>
+            <th>สถานะ</th>
+          </tr>
 
-    </thead>
+        </thead>
 
-    <tbody>
+        <tbody>
 
-    ${a.map(x=>`
+          ${inventory.map(
+            x => `
 
-    <tr>
+              <tr>
 
-        <td>
-            ${esc(x.item_code || '-')}
-        </td>
+                <td>
+                  ${esc(x.item_code || '-')}
+                </td>
 
-        <td>
-            ${esc(x.item_name || '-')}
-        </td>
+                <td>
+                  ${esc(x.item_name || '-')}
+                </td>
 
-        <td>
-            ${esc(x.unit || '-')}
-        </td>
+                <td>
+                  ${esc(x.unit || '-')}
+                </td>
 
-        <td>
-            <b>
-                ${esc(x.stock ?? 0)}
-            </b>
-        </td>
+                <td>
+                  <b>${esc(x.stock ?? 0)}</b>
+                </td>
 
-        <td>
-            ${esc(x.min_stock ?? 0)}
-        </td>
+                <td>
+                  ${esc(x.min_stock ?? 0)}
+                </td>
 
-        <td>
-            ${esc(x.status || '-')}
-        </td>
+                <td>
+                  ${esc(x.status || '-')}
+                </td>
 
-    </tr>
+              </tr>
 
-    `).join('')}
+            `
+          ).join('')}
 
-    </tbody>
+        </tbody>
 
-    </table>
+      </table>
 
     </div>
-
-    `;
+  `;
 
 }
 
 
 function openStockMove(type,ticketNo){
 
-    const inv =
-        Array.isArray(
-            systemData.inventory
-        )
-            ? systemData.inventory
-            : [];
+  const inventory =
+    Array.isArray(systemData.inventory)
+      ? systemData.inventory
+      : [];
 
+  const options =
+    inventory.map(
+      x => {
 
-    const t =
-        ticketNo
-            ? (
-                systemData.tickets || []
-            ).find(
-                x =>
-                    String(
-                        x.ticket_no
-                    ) ===
-                    String(ticketNo)
-            )
-            : null;
+        const code =
+          String(
+            x.item_code || ''
+          ).trim();
 
+        if(!code)return '';
 
-    const options =
-        inv
-        .map(x=>{
+        return `
+          <option value="${escAttr(code)}">
 
-            const code =
-                String(
-                    x.item_code || ''
-                ).trim();
+            ${esc(x.item_name || code)}
+            —
+            Stock ${esc(x.stock ?? 0)}
+            ${esc(x.unit || '')}
 
-
-            if(!code)return '';
-
-
-            return `
-
-            <option
-                value="${escAttr(code)}">
-
-                ${esc(
-                    x.item_name ||
-                    code
-                )}
-                —
-                Stock ${esc(
-                    x.stock ?? 0
-                )}
-                ${esc(
-                    x.unit || ''
-                )}
-
-            </option>
-
-            `;
-
-        })
-        .join('');
-
-
-    const purpose =
-        t
-            ? `Ticket ${esc(
-                t.ticket_no
-            )} — ${esc(
-                t.location || '-'
-            )}`
-            : '';
-
-
-    document
-        .getElementById('modalTitle')
-        .textContent =
-            type === 'IN'
-                ? '📥 Stock In'
-                : (
-                    ticketNo
-                        ? '📤 เบิกของ — '+ticketNo
-                        : '📤 Stock Out'
-                );
-
-
-    document
-        .getElementById('modalBody')
-        .innerHTML = `
-
-        <div class="form-group">
-
-            <label>
-                สินค้า
-            </label>
-
-            <select id="moveCode">
-
-                <option value="">
-                    -- เลือกรายการสินค้า --
-                </option>
-
-                ${options}
-
-            </select>
-
-            ${
-                !inv.length
-                    ? `
-                    <div
-                        class="section-note"
-                        style="
-                            margin-top:6px;
-                            color:#ff8291
-                        ">
-
-                        ไม่พบรายการสินค้า
-
-                    </div>
-                    `
-                    : ''
-            }
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                จำนวน
-            </label>
-
-            <input
-                id="moveQty"
-                type="number"
-                min="1"
-                step="1"
-                required>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                ${
-                    type === 'IN'
-                        ? 'แหล่งที่มา'
-                        : 'นำไปใช้ที่ไหน'
-                }
-            </label>
-
-            <input
-                id="movePurpose"
-                value="${escAttr(purpose)}"
-                ${ticketNo ? 'readonly' : ''}
-                placeholder="${
-                    type === 'IN'
-                        ? 'เช่น Supplier / PO'
-                        : 'เช่น ห้อง 305 / งาน PM / งานทั่วไป'
-                }">
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                หมายเหตุ
-            </label>
-
-            <textarea id="moveNote">${
-                ticketNo
-                    ? 'เบิกใช้กับใบแจ้งซ่อม '+esc(ticketNo)
-                    : ''
-            }</textarea>
-
-        </div>
-
-
-        <button
-            type="button"
-            class="btn-primary"
-            onclick="saveStockMove(
-                '${type}',
-                '${ticketNo ? escAttr(ticketNo) : ''}'
-            )">
-
-            💾 บันทึก ${
-                type === 'IN'
-                    ? 'Stock In'
-                    : 'Stock Out'
-            }
-
-        </button>
-
+          </option>
         `;
 
+      }
+    ).join('');
 
-    openModal();
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    type === 'IN'
+      ? '📥 Stock In'
+      : '📤 Stock Out';
+
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
+
+    <div class="form-group">
+
+      <label>สินค้า</label>
+
+      <select id="moveCode">
+
+        <option value="">
+          -- เลือกรายการสินค้า --
+        </option>
+
+        ${options}
+
+      </select>
+
+    </div>
+
+    <div class="form-group">
+
+      <label>จำนวน</label>
+
+      <input
+        id="moveQty"
+        type="number"
+        min="1"
+        step="1">
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        ${type === 'IN'
+          ? 'แหล่งที่มา'
+          : 'นำไปใช้ที่ไหน'}
+      </label>
+
+      <input
+        id="movePurpose"
+        placeholder="${
+          type === 'IN'
+            ? 'เช่น Supplier / PO'
+            : 'เช่น ห้อง 305 / งาน PM'
+        }">
+
+    </div>
+
+    <div class="form-group">
+
+      <label>หมายเหตุ</label>
+
+      <textarea
+        id="moveNote"></textarea>
+
+    </div>
+
+    <button
+      class="btn-primary"
+      onclick="saveStockMove(
+        '${type}',
+        '${escAttr(ticketNo || '')}'
+      )">
+
+      💾 บันทึก
+
+    </button>
+
+  `;
+
+  openModal();
 
 }
 
 
-async function saveStockMove(type,ticketNo){
+async function saveStockMove(
+  type,
+  ticketNo
+){
 
-    try{
+  try{
 
-        const itemCodeEl =
-            document.getElementById(
-                'moveCode'
-            );
+    const itemCode =
+      document.getElementById(
+        'moveCode'
+      ).value;
 
+    const quantity =
+      Number(
+        document.getElementById(
+          'moveQty'
+        ).value
+      );
 
-        const qtyEl =
-            document.getElementById(
-                'moveQty'
-            );
+    const purpose =
+      document.getElementById(
+        'movePurpose'
+      ).value.trim();
 
+    const note =
+      document.getElementById(
+        'moveNote'
+      ).value.trim();
 
-        const purposeEl =
-            document.getElementById(
-                'movePurpose'
-            );
+    if(!itemCode){
 
-
-        const noteEl =
-            document.getElementById(
-                'moveNote'
-            );
-
-
-        if(
-            !itemCodeEl ||
-            !itemCodeEl.value
-        ){
-
-            throw new Error(
-                'กรุณาเลือกรายการสินค้า'
-            );
-
-        }
-
-
-        if(
-            !qtyEl ||
-            Number(qtyEl.value) <= 0
-        ){
-
-            throw new Error(
-                'กรุณาระบุจำนวน'
-            );
-
-        }
-
-
-        if(
-            type === 'OUT' &&
-            (
-                !purposeEl ||
-                !purposeEl.value.trim()
-            )
-        ){
-
-            throw new Error(
-                'กรุณาระบุว่านำอะไหล่ไปใช้ที่ไหน'
-            );
-
-        }
-
-
-        const r =
-            await runServer(
-                type === 'IN'
-                    ? 'stockIn'
-                    : 'stockOut',
-                {
-                    line_user_id:
-                        currentUser.userId,
-
-                    item_code:
-                        itemCodeEl.value,
-
-                    quantity:
-                        Number(
-                            qtyEl.value
-                        ),
-
-                    ticket_no:
-                        ticketNo || '',
-
-                    movement_purpose:
-                        purposeEl.value.trim(),
-
-                    note:
-                        noteEl.value.trim()
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'บันทึก Stock ไม่สำเร็จ'
-            );
-
-        }
-
-
-        closeModal();
-
-
-        toast(
-            'บันทึก Stock สำเร็จ',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-        if(ticketNo){
-
-            showView('taskSection');
-
-            renderTaskList();
-
-        }else{
-
-            showView('stockSection');
-
-            renderStock();
-
-        }
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        'กรุณาเลือกรายการสินค้า'
+      );
 
     }
+
+    if(quantity <= 0){
+
+      throw new Error(
+        'กรุณาระบุจำนวน'
+      );
+
+    }
+
+    const r =
+      await runServer(
+        type === 'IN'
+          ? 'stockIn'
+          : 'stockOut',
+        {
+
+          line_user_id:
+            currentUser.userId,
+
+          item_code:itemCode,
+
+          quantity:quantity,
+
+          ticket_no:
+            ticketNo || '',
+
+          movement_purpose:
+            purpose,
+
+          note:note
+
+        }
+      );
+
+    if(r.status !== 'success'){
+
+      throw new Error(
+        r.message ||
+        'บันทึก Stock ไม่สำเร็จ'
+      );
+
+    }
+
+    closeModal();
+
+    toast(
+      'บันทึก Stock สำเร็จ',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('stockSection');
+
+    renderStock();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
@@ -3961,120 +3250,108 @@ async function saveStockMove(type,ticketNo){
 
 function renderRequisitions(){
 
-    const a =
-        systemData.requisitions || [];
+  const data =
+    systemData.requisitions || [];
 
+  const element =
+    document.getElementById(
+      'requisitionList'
+    );
 
-    const el =
-        document.getElementById(
-            'requisitionList'
-        );
+  if(!data.length){
 
+    element.innerHTML =
+      emptyHtml(
+        '📋',
+        'ยังไม่มีรายการ Requisition'
+      );
 
-    if(!el)return;
+    return;
 
+  }
 
-    if(!a.length){
-
-        el.innerHTML =
-            emptyHtml(
-                '📋',
-                'ยังไม่มีรายการ Requisition'
-            );
-
-        return;
-
-    }
-
-
-    el.innerHTML = `
+  element.innerHTML = `
 
     <div class="table-wrap">
 
-    <table>
+      <table>
 
-    <thead>
+        <thead>
 
-    <tr>
-        <th>เลขที่</th>
-        <th>Ticket</th>
-        <th>สถานที่</th>
-        <th>Status</th>
-        <th>ผู้ส่ง</th>
-        <th>PDF</th>
-    </tr>
+          <tr>
 
-    </thead>
+            <th>เลขที่</th>
+            <th>Ticket</th>
+            <th>สถานที่</th>
+            <th>Status</th>
+            <th>ผู้ส่ง</th>
+            <th>PDF</th>
 
-    <tbody>
+          </tr>
 
-    ${a.map(x=>`
+        </thead>
 
-    <tr>
+        <tbody>
 
-        <td>
-            ${esc(
-                x.requisition_no || '-'
-            )}
-        </td>
+          ${data.map(
+            x => `
 
-        <td>
-            ${esc(
-                x.ticket_no || '-'
-            )}
-        </td>
+              <tr>
 
-        <td>
-            ${esc(
-                x.location || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.requisition_no || '-')}
+                </td>
 
-        <td>
-            ${esc(
-                x.status || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.ticket_no || '-')}
+                </td>
 
-        <td>
-            ${esc(
-                x.submitted_by || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.location || '-')}
+                </td>
 
-        <td>
+                <td>
+                  ${esc(x.status || '-')}
+                </td>
 
-            ${
-                x.pdf_url
-                    ? `
-                    <button
-                        type="button"
-                        class="btn-secondary small-btn"
-                        onclick="window.open(
+                <td>
+                  ${esc(x.submitted_by || '-')}
+                </td>
+
+                <td>
+
+                  ${
+                    x.pdf_url
+
+                      ? `
+                        <button
+                          class="btn-secondary small-btn"
+                          onclick="window.open(
                             '${escAttr(x.pdf_url)}',
                             '_blank'
-                        )">
+                          )">
 
-                        📄 เปิด
+                          📄 เปิด
 
-                    </button>
-                    `
-                    : '-'
-            }
+                        </button>
+                      `
 
-        </td>
+                      : '-'
+                  }
 
-    </tr>
+                </td>
 
-    `).join('')}
+              </tr>
 
-    </tbody>
+            `
+          ).join('')}
 
-    </table>
+        </tbody>
+
+      </table>
 
     </div>
-
-    `;
+  `;
 
 }
 
@@ -4085,322 +3362,264 @@ function renderRequisitions(){
 
 function renderStaff(){
 
-    const a =
-        systemData.staff || [];
+  const staff =
+    systemData.staff || [];
 
+  const element =
+    document.getElementById(
+      'staffList'
+    );
 
-    const el =
-        document.getElementById(
-            'staffList'
-        );
+  if(!staff.length){
 
+    element.innerHTML =
+      emptyHtml(
+        '👤',
+        'ไม่พบข้อมูล Staff'
+      );
 
-    if(!el)return;
+    return;
 
+  }
 
-    if(!a.length){
-
-        el.innerHTML =
-            emptyHtml(
-                '👤',
-                'ไม่พบข้อมูล Staff'
-            );
-
-        return;
-
-    }
-
-
-    el.innerHTML = `
+  element.innerHTML = `
 
     <div class="table-wrap">
 
-    <table>
+      <table>
 
-    <thead>
+        <thead>
 
-    <tr>
+          <tr>
 
-        <th>พนักงาน</th>
-        <th>แผนก</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>จัดการ</th>
+            <th>พนักงาน</th>
+            <th>แผนก</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>จัดการ</th>
 
-    </tr>
+          </tr>
 
-    </thead>
+        </thead>
 
-    <tbody>
+        <tbody>
 
-    ${a.map(x=>`
+          ${staff.map(
+            x => `
 
-    <tr>
+              <tr>
 
-        <td>
+                <td>
 
-            <b>
-                ${esc(
-                    x.full_name || '-'
-                )}
-            </b>
+                  <b>
+                    ${esc(x.full_name || '-')}
+                  </b>
 
-            <br>
+                  <br>
 
-            <small>
-                ${esc(
-                    x.emp_id || '-'
-                )}
-            </small>
+                  <small>
+                    ${esc(x.emp_id || '-')}
+                  </small>
 
-        </td>
+                </td>
 
-        <td>
-            ${esc(
-                x.department || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.department || '-')}
+                </td>
 
-        <td>
-            ${esc(
-                x.role || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.role || '-')}
+                </td>
 
-        <td>
-            ${esc(
-                x.status || '-'
-            )}
-        </td>
+                <td>
+                  ${esc(x.status || '-')}
+                </td>
 
-        <td>
+                <td>
 
-            <button
-                type="button"
-                class="btn-secondary small-btn"
-                onclick="editStaff(
-                    '${escAttr(
-                        x.line_user_id || ''
-                    )}'
-                )">
+                  <button
+                    class="btn-secondary small-btn"
+                    onclick="editStaff(
+                      '${escAttr(x.line_user_id)}'
+                    )">
 
-                แก้ไข
+                    แก้ไข
 
-            </button>
+                  </button>
 
-        </td>
+                </td>
 
-    </tr>
+              </tr>
 
-    `).join('')}
+            `
+          ).join('')}
 
-    </tbody>
+        </tbody>
 
-    </table>
+      </table>
 
     </div>
-
-    `;
+  `;
 
 }
 
 
 function editStaff(id){
 
-    const s =
-        (systemData.staff || [])
-        .find(
-            x =>
-                String(
-                    x.line_user_id
-                ) ===
-                String(id)
-        );
+  const staff =
+    (systemData.staff || [])
+      .find(
+        x =>
+          String(x.line_user_id) ===
+          String(id)
+      );
 
+  if(!staff)return;
 
-    if(!s)return;
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    '👤 แก้ไข Staff';
 
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
 
-    document
-        .getElementById('modalTitle')
-        .textContent =
-            '👤 แก้ไข Staff';
+    <div class="form-group">
 
+      <label>ชื่อ</label>
 
-    document
-        .getElementById('modalBody')
-        .innerHTML = `
+      <input
+        id="editStaffName"
+        value="${escAttr(
+          staff.full_name || ''
+        )}">
 
-        <div class="form-group">
+    </div>
 
-            <label>
-                ชื่อ
-            </label>
+    <div class="form-group">
 
-            <input
-                id="editStaffName"
-                value="${escAttr(
-                    s.full_name || ''
-                )}">
+      <label>Role</label>
 
-        </div>
+      <select id="editStaffRole">
 
+        <option>ADMIN</option>
+        <option>SUPERVISOR</option>
+        <option>TECHNICIAN</option>
+        <option>REPORTER</option>
 
-        <div class="form-group">
+      </select>
 
-            <label>
-                Role
-            </label>
+    </div>
 
-            <select id="editStaffRole">
+    <div class="form-group">
 
-                <option value="ADMIN">
-                    ADMIN
-                </option>
+      <label>Status</label>
 
-                <option value="SUPERVISOR">
-                    SUPERVISOR
-                </option>
+      <select id="editStaffStatus">
 
-                <option value="TECHNICIAN">
-                    TECHNICIAN
-                </option>
+        <option>ACTIVE</option>
+        <option>INACTIVE</option>
 
-                <option value="REPORTER">
-                    REPORTER
-                </option>
+      </select>
 
-            </select>
+    </div>
 
-        </div>
+    <button
+      class="btn-primary"
+      onclick="saveStaff(
+        '${escAttr(id)}'
+      )">
 
+      💾 บันทึก
 
-        <div class="form-group">
+    </button>
+  `;
 
-            <label>
-                Status
-            </label>
+  document.getElementById(
+    'editStaffRole'
+  ).value =
+    staff.role || 'REPORTER';
 
-            <select id="editStaffStatus">
+  document.getElementById(
+    'editStaffStatus'
+  ).value =
+    staff.status || 'ACTIVE';
 
-                <option value="ACTIVE">
-                    ACTIVE
-                </option>
-
-                <option value="INACTIVE">
-                    INACTIVE
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <button
-            type="button"
-            class="btn-primary"
-            onclick="saveStaff(
-                '${escAttr(id)}'
-            )">
-
-            💾 บันทึก
-
-        </button>
-
-        `;
-
-
-    document
-        .getElementById('editStaffRole')
-        .value =
-            s.role || 'REPORTER';
-
-
-    document
-        .getElementById('editStaffStatus')
-        .value =
-            s.status || 'ACTIVE';
-
-
-    openModal();
+  openModal();
 
 }
 
 
 async function saveStaff(id){
 
-    try{
+  try{
 
-        const r =
-            await runServer(
-                'updateStaff',
-                {
-                    line_user_id:
-                        currentUser.userId,
+    const r =
+      await runServer(
+        'updateStaff',
+        {
 
-                    target_line_user_id:
-                        id,
+          line_user_id:
+            currentUser.userId,
 
-                    full_name:
-                        document
-                        .getElementById(
-                            'editStaffName'
-                        )
-                        .value
-                        .trim(),
+          target_line_user_id:id,
 
-                    role:
-                        document
-                        .getElementById(
-                            'editStaffRole'
-                        )
-                        .value,
+          full_name:
+            document
+              .getElementById(
+                'editStaffName'
+              )
+              .value
+              .trim(),
 
-                    status:
-                        document
-                        .getElementById(
-                            'editStaffStatus'
-                        )
-                        .value
-                }
-            );
+          role:
+            document
+              .getElementById(
+                'editStaffRole'
+              )
+              .value,
 
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'บันทึกไม่สำเร็จ'
-            );
+          status:
+            document
+              .getElementById(
+                'editStaffStatus'
+              )
+              .value
 
         }
+      );
 
+    if(r.status !== 'success'){
 
-        closeModal();
-
-
-        toast(
-            'บันทึก Staff แล้ว',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-        showView('staffSection');
-
-        renderStaff();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'บันทึกไม่สำเร็จ'
+      );
 
     }
+
+    closeModal();
+
+    toast(
+      'บันทึก Staff แล้ว',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('staffSection');
+
+    renderStaff();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
@@ -4411,339 +3630,381 @@ async function saveStaff(id){
 
 function renderSettings(){
 
-    const s =
-        systemData.settings || {};
+  const settings =
+    systemData.settings || {};
 
+  const departments =
+    systemData.departments || [];
 
-    const keys =
-        Object.keys(s)
-        .filter(
-            k =>
-                k !== 'DEPARTMENTS_JSON'
-        );
+  document.getElementById(
+    'settingsList'
+  ).innerHTML = `
 
+    <div class="card">
 
-    const depts =
-        Array.isArray(
-            s.DEPARTMENTS_JSON
-        )
-            ? s.DEPARTMENTS_JSON
-            : (
-                systemData.departments || []
-            );
+      <h3>🏢 Department Management</h3>
 
+      <div class="form-group">
 
-    const el =
-        document.getElementById(
-            'settingsList'
-        );
+        <label>Departments</label>
 
+        <textarea id="deptJson">${esc(
+          departments.join(', ')
+        )}</textarea>
 
-    if(!el)return;
+      </div>
 
+      <button
+        class="btn-primary"
+        onclick="saveDepartments()">
 
-    el.innerHTML = `
+        💾 บันทึก Departments
 
-    <div
-        class="card"
-        style="margin:0 0 12px">
-
-        <h3>
-            🏢 Department Management
-        </h3>
-
-        <div class="form-group">
-
-            <label>
-                Departments
-            </label>
-
-            <textarea id="deptJson">${esc(
-                depts.join(', ')
-            )}</textarea>
-
-        </div>
-
-        <button
-            type="button"
-            class="btn-primary"
-            onclick="saveDepartments()">
-
-            💾 บันทึก Departments
-
-        </button>
+      </button>
 
     </div>
 
-    ${
-        keys.length
+    <div class="table-wrap">
 
-            ? `
+      <table>
 
-            <div class="table-wrap">
+        <thead>
 
-            <table>
+          <tr>
 
-            <thead>
+            <th>Key</th>
+            <th>Value</th>
+            <th></th>
 
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th></th>
-            </tr>
+          </tr>
 
-            </thead>
+        </thead>
 
-            <tbody>
+        <tbody>
 
-            ${keys.map(k=>`
+          ${
+            Object.keys(settings)
+              .filter(
+                k =>
+                  k !== 'DEPARTMENTS_JSON'
+              )
+              .map(
+                key => `
 
-            <tr>
+                  <tr>
 
-                <td>
-                    <b>
-                        ${esc(k)}
-                    </b>
-                </td>
+                    <td>
+                      <b>${esc(key)}</b>
+                    </td>
 
-                <td>
-                    ${esc(
-                        typeof s[k] === 'object'
-                            ? JSON.stringify(s[k])
-                            : String(
-                                s[k] ?? ''
-                            )
-                    )}
-                </td>
+                    <td>
+                      ${esc(
+                        typeof settings[key] === 'object'
+                          ? JSON.stringify(settings[key])
+                          : String(settings[key] ?? '')
+                      )}
+                    </td>
 
-                <td>
+                    <td>
 
-                    <button
-                        type="button"
+                      <button
                         class="btn-secondary small-btn"
                         onclick="editSetting(
-                            '${escAttr(k)}'
+                          '${escAttr(key)}'
                         )">
 
                         แก้ไข
 
-                    </button>
+                      </button>
 
-                </td>
+                    </td>
 
-            </tr>
+                  </tr>
 
-            `).join('')}
+                `
+              ).join('')
+          }
 
-            </tbody>
+        </tbody>
 
-            </table>
+      </table>
 
-            </div>
-
-            `
-
-            : emptyHtml(
-                '⚙️',
-                'ไม่พบ Settings เพิ่มเติม'
-            )
-    }
-
-    `;
+    </div>
+  `;
 
 }
 
 
 async function saveDepartments(){
 
-    try{
+  try{
 
-        const value =
-            document
-            .getElementById(
-                'deptJson'
-            )
-            .value
-            .split(',')
-            .map(
-                x =>
-                    x.trim().toUpperCase()
-            )
-            .filter(Boolean);
+    const value =
+      document
+        .getElementById('deptJson')
+        .value
+        .split(',')
+        .map(
+          x => x.trim().toUpperCase()
+        )
+        .filter(Boolean);
 
+    const r =
+      await runServer(
+        'updateSetting',
+        {
 
-        const r =
-            await runServer(
-                'updateSetting',
-                {
-                    line_user_id:
-                        currentUser.userId,
+          line_user_id:
+            currentUser.userId,
 
-                    key:
-                        'DEPARTMENTS_JSON',
+          key:'DEPARTMENTS_JSON',
 
-                    value:value
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'บันทึก Department ไม่สำเร็จ'
-            );
+          value:value
 
         }
+      );
 
+    if(r.status !== 'success'){
 
-        toast(
-            'บันทึก Department แล้ว',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-        showView('settingsSection');
-
-        renderSettings();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
+      throw new Error(
+        r.message ||
+        'บันทึก Department ไม่สำเร็จ'
+      );
 
     }
+
+    toast(
+      'บันทึก Department แล้ว',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('settingsSection');
+
+    renderSettings();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
 
-function editSetting(k){
+function editSetting(key){
 
-    const v =
-        systemData.settings[k];
+  const value =
+    systemData.settings[key];
+
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    '⚙️ แก้ไข Setting';
+
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
+
+    <div class="form-group">
+
+      <label>
+        ${esc(key)}
+      </label>
+
+      <textarea
+        id="editSettingValue">${esc(
+          typeof value === 'object'
+            ? JSON.stringify(value)
+            : String(value ?? '')
+        )}</textarea>
+
+    </div>
+
+    <button
+      class="btn-primary"
+      onclick="saveSetting(
+        '${escAttr(key)}'
+      )">
+
+      💾 บันทึก
+
+    </button>
+
+  `;
+
+  openModal();
+
+}
 
 
-    document
-        .getElementById('modalTitle')
-        .textContent =
-            '⚙️ แก้ไข Setting';
+async function saveSetting(key){
+
+  try{
+
+    let value =
+      document
+        .getElementById(
+          'editSettingValue'
+        )
+        .value;
+
+    if(key === 'DEPARTMENTS_JSON'){
+
+      value =
+        value
+          .split(',')
+          .map(
+            x =>
+              x.trim().toUpperCase()
+          )
+          .filter(Boolean);
+
+    }
+
+    const r =
+      await runServer(
+        'updateSetting',
+        {
+
+          line_user_id:
+            currentUser.userId,
+
+          key:key,
+
+          value:value
+
+        }
+      );
+
+    if(r.status !== 'success'){
+
+      throw new Error(
+        r.message ||
+        'บันทึก Setting ไม่สำเร็จ'
+      );
+
+    }
+
+    closeModal();
+
+    toast(
+      'บันทึก Setting แล้ว',
+      'success'
+    );
+
+    await loadInitialData();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
+
+}
 
 
-    document
-        .getElementById('modalBody')
-        .innerHTML = `
+/* =========================================================
+   WORK NOTE
+========================================================= */
+
+function askWorkNote(){
+
+  return new Promise(
+    resolve => {
+
+      modalPromptResolve =
+        resolve;
+
+      document.getElementById(
+        'modalTitle'
+      ).textContent =
+        'หมายเหตุ / รายละเอียดจบงาน';
+
+      document.getElementById(
+        'modalBody'
+      ).innerHTML = `
 
         <div class="form-group">
 
-            <label>
-                ${esc(k)}
-            </label>
-
-            <textarea
-                id="editSettingValue">${esc(
-                    typeof v === 'object'
-                        ? JSON.stringify(v)
-                        : String(v ?? '')
-                )}</textarea>
+          <textarea
+            id="workNoteInput"
+            rows="5"
+            placeholder="ไม่ใส่ก็ได้">
+          </textarea>
 
         </div>
 
+        <div class="ticket-actions">
 
-        <button
-            type="button"
+          <button
+            class="btn-secondary"
+            onclick="closeModal()">
+
+            ยกเลิก
+
+          </button>
+
+          <button
             class="btn-primary"
-            onclick="saveSetting(
-                '${escAttr(k)}'
-            )">
+            onclick="confirmWorkNote()">
 
-            💾 บันทึก
+            ตกลง
 
-        </button>
+          </button>
 
-        `;
+        </div>
 
+      `;
 
-    openModal();
+      openModal();
+
+      setTimeout(
+        () =>
+          document
+            .getElementById(
+              'workNoteInput'
+            )
+            ?.focus(),
+        50
+      );
+
+    }
+  );
 
 }
 
 
-async function saveSetting(k){
+function confirmWorkNote(){
 
-    try{
+  const value =
+    (
+      document
+        .getElementById(
+          'workNoteInput'
+        )
+        ?.value || ''
+    ).trim();
 
-        let v =
-            document
-            .getElementById(
-                'editSettingValue'
-            )
-            .value;
+  if(modalPromptResolve){
 
+    const resolve =
+      modalPromptResolve;
 
-        if(k === 'DEPARTMENTS_JSON'){
+    modalPromptResolve = null;
 
-            v =
-                v
-                .split(',')
-                .map(
-                    x =>
-                        x.trim().toUpperCase()
-                )
-                .filter(Boolean);
+    closeModal(false);
 
-        }
+    resolve(value);
 
-
-        const r =
-            await runServer(
-                'updateSetting',
-                {
-                    line_user_id:
-                        currentUser.userId,
-
-                    key:k,
-
-                    value:v
-                }
-            );
-
-
-        if(!r || r.status !== 'success'){
-
-            throw new Error(
-                r?.message ||
-                'บันทึก Setting ไม่สำเร็จ'
-            );
-
-        }
-
-
-        closeModal();
-
-
-        toast(
-            'บันทึก Setting แล้ว',
-            'success'
-        );
-
-
-        await loadInitialData();
-
-
-    }catch(e){
-
-        toast(
-            e.message,
-            'error'
-        );
-
-    }
+  }
 
 }
 
@@ -4754,174 +4015,151 @@ async function saveSetting(k){
 
 function openModal(){
 
-    document
-        .getElementById('modal')
-        .classList
-        .remove('hidden');
+  document
+    .getElementById('modal')
+    .classList.remove('hidden');
 
 }
 
 
 function closeModal(resolveCancel=true){
 
-    if(
-        modalPromptResolve &&
-        resolveCancel
-    ){
+  if(
+    modalPromptResolve &&
+    resolveCancel
+  ){
 
-        const r =
-            modalPromptResolve;
+    const resolve =
+      modalPromptResolve;
 
+    modalPromptResolve = null;
 
-        modalPromptResolve = null;
+    resolve('');
 
+  }
 
-        r('');
-
-    }
-
-
-    document
-        .getElementById('modal')
-        .classList
-        .add('hidden');
+  document
+    .getElementById('modal')
+    .classList.add('hidden');
 
 }
 
 
 document
-.getElementById('modal')
-.addEventListener(
+  .getElementById('modal')
+  .addEventListener(
     'click',
     function(e){
 
-        if(
-            e.target === this
-        ){
+      if(
+        e.target === this
+      ){
 
-            closeModal();
+        closeModal();
 
-        }
+      }
 
     }
-);
-
-
-/* =========================================================
-   RELOAD
-========================================================= */
-
-async function reloadSystem(){
-
-    await loadInitialData();
-
-}
+  );
 
 
 /* =========================================================
    TOAST / LOADING / ERROR
 ========================================================= */
 
+let toastTimer;
+
 function toast(message,type){
 
-    const el =
-        document.getElementById(
-            'toast'
-        );
+  const element =
+    document.getElementById(
+      'toast'
+    );
 
+  element.textContent =
+    message;
 
-    el.textContent =
-        message || '';
+  element.className =
+    type || '';
 
+  element.style.display =
+    'block';
 
-    el.className =
-        type || '';
+  clearTimeout(
+    toastTimer
+  );
 
-
-    el.style.display =
-        'block';
-
-
-    clearTimeout(toastTimer);
-
-
-    toastTimer =
-        setTimeout(
-            ()=>{
-                el.style.display =
-                    'none';
-            },
-            3500
-        );
+  toastTimer =
+    setTimeout(
+      () =>
+        element.style.display =
+          'none',
+      3500
+    );
 
 }
 
 
-function setLoading(text){
+function setLoading(message){
 
-    document
-        .getElementById(
-            'loadingText'
-        )
-        .textContent =
-            text;
+  document.getElementById(
+    'loadingText'
+  ).textContent =
+    message;
 
 }
 
 
 function showFatalError(message){
 
-    const screen =
-        document.getElementById(
-            'loadingScreen'
-        );
-
-
-    screen.classList.remove(
-        'hidden'
+  const screen =
+    document.getElementById(
+      'loadingScreen'
     );
 
+  screen.classList.remove(
+    'hidden'
+  );
 
-    document
-        .getElementById(
-            'loadingText'
-        )
-        .innerHTML = `
+  document.getElementById(
+    'loadingText'
+  ).innerHTML = `
 
-        <div
-            style="
-                color:#ff8291;
-                font-weight:700
-            ">
+    <div
+      style="
+        color:#dc2626;
+        font-weight:800;
+        margin-bottom:10px;
+      ">
 
-            ❌ ไม่สามารถเข้าใช้งานระบบ
+      ❌ ไม่สามารถเข้าใช้งานระบบ
 
-        </div>
+    </div>
 
-        <div
-            style="
-                font-size:13px;
-                color:#a9bdd3;
-                margin:10px 0
-            ">
+    <div
+      style="
+        color:#64748b;
+        font-size:12px;
+        margin-bottom:14px;
+        word-break:break-word;
+      ">
 
-            ${esc(
-                message ||
-                'เกิดข้อผิดพลาด'
-            )}
+      ${esc(
+        message ||
+        'เกิดข้อผิดพลาด'
+      )}
 
-        </div>
+    </div>
 
-        <button
-            type="button"
-            onclick="location.reload()"
-            class="btn-primary">
+    <button
+      onclick="location.reload()"
+      class="btn-primary">
 
-            🔄 ลองใหม่
+      🔄 ลองใหม่
 
-        </button>
+    </button>
 
-        `;
+  `;
 
 }
 
@@ -4932,79 +4170,81 @@ function showFatalError(message){
 
 function emptyHtml(icon,text){
 
-    return `
+  return `
 
     <div class="empty">
 
-        <div style="font-size:38px">
-            ${icon}
-        </div>
+      <div
+        style="
+          font-size:38px;
+          margin-bottom:8px;
+        ">
 
-        ${esc(text)}
+        ${icon}
+
+      </div>
+
+      ${esc(text)}
 
     </div>
 
-    `;
+  `;
 
 }
 
 
 function esc(value){
 
-    return String(
-        value == null
-            ? ''
-            : value
-    )
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+  return String(
+    value == null
+      ? ''
+      : value
+  )
+  .replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;')
+  .replace(/'/g,'&#039;');
 
 }
 
 
 function escAttr(value){
 
-    return esc(value)
-        .replace(/`/g,'&#096;');
+  return esc(value)
+    .replace(/`/g,'&#096;');
 
 }
 
 
 function formatDateValue(value){
 
-    if(!value)return '-';
+  if(!value)return '-';
 
+  try{
 
-    try{
+    const date =
+      new Date(value);
 
-        const d =
-            new Date(value);
+    if(isNaN(date)){
 
-
-        if(isNaN(d)){
-
-            return String(value);
-
-        }
-
-
-        return d.toLocaleString(
-            'th-TH',
-            {
-                dateStyle:'short',
-                timeStyle:'short'
-            }
-        );
-
-
-    }catch(e){
-
-        return String(value);
+      return String(value);
 
     }
+
+    return date.toLocaleString(
+      'th-TH',
+      {
+        dateStyle:'short',
+        timeStyle:'short'
+      }
+    );
+
+  }catch(e){
+
+    return String(value);
+
+  }
 
 }
 
