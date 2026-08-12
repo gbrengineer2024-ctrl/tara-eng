@@ -766,7 +766,7 @@ td{
           </div>
 
           <div class="form-group">
-            <label>ชื่อ</label>
+            <label>ชื่อ-นามสกุล</label>
             <input id="regFullName" required>
           </div>
 
@@ -1027,9 +1027,9 @@ td{
             <label>ระดับความด่วน</label>
 
             <select id="repPriority">
-              <option value="LOW">ปกติ</option>
-              <option value="NORMAL">สูง</option>
-              <option value="HIGH">ด่วน</option>
+              <option value="LOW">ต่ำ</option>
+              <option value="NORMAL">ปกติ</option>
+              <option value="HIGH">สูง</option>
               <option value="URGENT">ด่วนมาก</option>
             </select>
 
@@ -1290,7 +1290,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbwVnk54jyYPbLG3pQqCroCfSecNTFYtpoicDYVdasyzK4UD_HuvOnSMML6MS9zZsIit/exec';
+'https://script.google.com/macros/s/AKfycby6FiFdnDFnWlhX4-3p1D-yyEV5f7U1-H3YEMXiogd8cTWYiO4-47JbRXsizl_exh_G/exec';
 
 
 /* =========================================================
@@ -2668,6 +2668,7 @@ function technicianAssignHtml(t){
           x => `
             <option
               value="${escAttr(x.full_name)}"
+              data-id="${escAttr(x.line_user_id || '')}"
               ${
                 String(t.technician || '') ===
                 String(x.full_name || '')
@@ -3005,6 +3006,13 @@ async function assignTechnicianUI(no){
     const technician =
       select ? select.value : '';
 
+    const technicianId =
+      select && select.selectedIndex >= 0
+        ? select
+            .options[select.selectedIndex]
+            .dataset.id
+        : '';
+
     if(!technician){
 
       toast(
@@ -3026,7 +3034,9 @@ async function assignTechnicianUI(no){
 
           ticketNo:no,
 
-          technician:technician
+          technician:technician,
+
+          technicianId:technicianId
 
         }
       );
