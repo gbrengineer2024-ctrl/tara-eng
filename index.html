@@ -94,20 +94,6 @@ button{cursor:pointer}
   margin-top:2px;
 }
 
-.user-mini{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.user-mini img{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  object-fit:cover;
-  background:#edf2f7;
-}
-
 .content{
   padding:18px;
 }
@@ -465,6 +451,21 @@ textarea{
   min-width:100px;
 }
 
+.assign-row{
+  display:flex;
+  gap:7px;
+  margin-top:8px;
+}
+
+.assign-row select{
+  flex:1;
+}
+
+.assign-row button{
+  width:auto;
+  white-space:nowrap;
+}
+
 .badge{
   display:inline-flex;
   align-items:center;
@@ -734,11 +735,6 @@ td{
           <div class="brand-title">TARA BANGKOK RIVERSIDE</div>
           <div class="brand-sub">Engineering Department</div>
         </div>
-      </div>
-
-      <div class="user-mini">
-        <span id="topUserName"></span>
-        <img id="topUserPicture">
       </div>
 
     </div>
@@ -1294,7 +1290,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbwS3QsWGh6xFNWkewZzBjtQp2uOZ8BmwI9d1VB4c_N_ChMRUCJsjpLIU9BWP4zrTHJ2/exec';
+'https://script.google.com/macros/s/AKfycbxzBufg8dljYM8009lDDpHjIniTVcWbKG9UvxcofKKt6EAm7sghII2fI8KPDUxCXzer/exec';
 
 
 /* =========================================================
@@ -1712,19 +1708,10 @@ function updateHeader(){
     .textContent =
       dept + ' • ' + role;
 
-  document
-    .getElementById('topUserName')
-    .textContent = name;
-
   if(currentUser.pictureUrl){
 
     document
       .getElementById('userProfilePicture')
-      .src =
-      currentUser.pictureUrl;
-
-    document
-      .getElementById('topUserPicture')
       .src =
       currentUser.pictureUrl;
 
@@ -1763,6 +1750,21 @@ function hasPermission(permission){
       systemData.permissions &&
       systemData.permissions[permission] === true
     )
+  );
+
+}
+
+
+function isSupOrAdmin(){
+
+  const role =
+    String(
+      currentUser?.role || ''
+    ).toUpperCase();
+
+  return (
+    isAdmin() ||
+    role === 'SUPERVISOR'
   );
 
 }
@@ -2405,6 +2407,8 @@ function ticketCardHtml(t){
 
       </div>
 
+      ${technicianAssignHtml(t)}
+
     </div>
   `;
 
@@ -2584,7 +2588,113 @@ function ticketActionButtons(t){
 
   }
 
+  if(
+    isSupOrAdmin() &&
+    s !== 'CANCELLED'
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-secondary"
+        onclick="editTicketUI(
+          '${escAttr(t.ticket_no)}'
+        )">
+
+        ✏️ แก้ไข
+
+      </button>
+    `);
+
+  }
+
+  if(
+    isSupOrAdmin() &&
+    s !== 'CANCELLED' &&
+    s !== 'COMPLETED'
+  ){
+
+    buttons.push(`
+      <button
+        class="btn-danger"
+        onclick="cancelTicketUI(
+          '${escAttr(t.ticket_no)}'
+        )">
+
+        ✕ ยกเลิกงาน
+
+      </button>
+    `);
+
+  }
+
   return buttons.join('');
+
+}
+
+
+/* =========================================================
+   TECHNICIAN ASSIGNMENT
+========================================================= */
+
+function technicianAssignHtml(t){
+
+  if(!isSupOrAdmin())return '';
+
+  const s =
+    String(
+      t.status || ''
+    ).toUpperCase();
+
+  if(
+    s === 'CANCELLED' ||
+    s === 'COMPLETED'
+  )return '';
+
+  const techs =
+    systemData.technicians || [];
+
+  if(!techs.length)return '';
+
+  return `
+    <div class="assign-row">
+
+      <select id="assignTech_${escAttr(t.ticket_no)}">
+
+        <option value="">
+          -- เลือกช่าง --
+        </option>
+
+        ${techs.map(
+          x => `
+            <option
+              value="${escAttr(x.full_name)}"
+              ${
+                String(t.technician || '') ===
+                String(x.full_name || '')
+                  ? 'selected'
+                  : ''
+              }>
+
+              ${esc(x.full_name || '-')}
+
+            </option>
+          `
+        ).join('')}
+
+      </select>
+
+      <button
+        class="btn-blue small-btn"
+        onclick="assignTechnicianUI(
+          '${escAttr(t.ticket_no)}'
+        )">
+
+        👷 มอบหมาย
+
+      </button>
+
+    </div>
+  `;
 
 }
 
@@ -2681,43 +2791,274 @@ function viewTicket(no){
 
     <div class="ticket-actions">
 
-      ${
-        hasPermission('PRINT_PENDING_PARTS_PDF')
-
-          ? String(ticket.status).toUpperCase()
-              === 'WAITING_PARTS'
-
-            ? `
-              <button
-                class="btn-purple"
-                onclick="createPendingPartsPDFUI(
-                  '${escAttr(no)}'
-                )">
-
-                📄 PDF ใบเบิกอะไหล่
-
-              </button>
-            `
-
-            : `
-              <button
-                class="btn-purple"
-                onclick="createTicketPDFUI(
-                  '${escAttr(no)}'
-                )">
-
-                📄 ออก PDF
-
-              </button>
-            `
-
-          : ''
-      }
+      ${ticketActionButtons(ticket)}
 
     </div>
+
+    ${technicianAssignHtml(ticket)}
   `;
 
   openModal();
+
+}
+
+
+/* =========================================================
+   TICKET EDIT (Supervisor / Admin)
+========================================================= */
+
+function editTicketUI(no){
+
+  const ticket =
+    (systemData.tickets || [])
+      .find(
+        x =>
+          String(x.ticket_no) === String(no)
+      ) ||
+
+    (systemData.departmentTickets || [])
+      .find(
+        x =>
+          String(x.ticket_no) === String(no)
+      );
+
+  if(!ticket)return;
+
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    '✏️ แก้ไขงาน ' + no;
+
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
+
+    <div class="form-group">
+      <label>สถานที่</label>
+      <input
+        id="editTicketLocation"
+        value="${escAttr(ticket.location || '')}">
+    </div>
+
+    <div class="form-group">
+      <label>หมวดหมู่</label>
+      <input
+        id="editTicketCategory"
+        value="${escAttr(ticket.category || '')}">
+    </div>
+
+    <div class="form-group">
+      <label>ระดับความด่วน</label>
+      <select id="editTicketPriority">
+
+        ${
+          ['NORMAL','URGENT','EMERGENCY']
+            .map(
+              p => `
+                <option
+                  value="${p}"
+                  ${
+                    String(ticket.priority || '')
+                      .toUpperCase() === p
+                      ? 'selected'
+                      : ''
+                  }>
+                  ${p}
+                </option>
+              `
+            )
+            .join('')
+        }
+
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>รายละเอียด</label>
+      <textarea id="editTicketIssue">${esc(ticket.issue || '')}</textarea>
+    </div>
+
+    <button
+      class="btn-primary"
+      onclick="saveTicketEdit('${escAttr(no)}')">
+
+      💾 บันทึก
+
+    </button>
+
+  `;
+
+  openModal();
+
+}
+
+
+async function saveTicketEdit(no){
+
+  try{
+
+    const r =
+      await runServer(
+        'updateTicket',
+        {
+
+          line_user_id:
+            currentUser.userId,
+
+          ticketNo:no,
+
+          location:
+            document
+              .getElementById('editTicketLocation')
+              .value
+              .trim(),
+
+          category:
+            document
+              .getElementById('editTicketCategory')
+              .value
+              .trim(),
+
+          priority:
+            document
+              .getElementById('editTicketPriority')
+              .value,
+
+          issue:
+            document
+              .getElementById('editTicketIssue')
+              .value
+              .trim()
+
+        }
+      );
+
+    if(r.status !== 'success'){
+
+      throw new Error(
+        r.message ||
+        'บันทึกไม่สำเร็จ'
+      );
+
+    }
+
+    closeModal();
+
+    toast(
+      'บันทึกการแก้ไขแล้ว',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('taskSection');
+
+    renderTaskList();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TICKET CANCEL (Supervisor / Admin)
+========================================================= */
+
+async function cancelTicketUI(no){
+
+  if(
+    !confirm(
+      'ยืนยันยกเลิกงาน ' +
+      no +
+      ' ใช่หรือไม่?'
+    )
+  )return;
+
+  await changeTicketStatus(
+    no,
+    'CANCELLED'
+  );
+
+}
+
+
+/* =========================================================
+   TECHNICIAN ASSIGNMENT (Supervisor / Admin)
+========================================================= */
+
+async function assignTechnicianUI(no){
+
+  try{
+
+    const select =
+      document.getElementById(
+        'assignTech_' + no
+      );
+
+    const technician =
+      select ? select.value : '';
+
+    if(!technician){
+
+      toast(
+        'กรุณาเลือกช่าง',
+        'error'
+      );
+
+      return;
+
+    }
+
+    const r =
+      await runServer(
+        'assignTechnician',
+        {
+
+          line_user_id:
+            currentUser.userId,
+
+          ticketNo:no,
+
+          technician:technician
+
+        }
+      );
+
+    if(r.status !== 'success'){
+
+      throw new Error(
+        r.message ||
+        'มอบหมายงานไม่สำเร็จ'
+      );
+
+    }
+
+    toast(
+      'มอบหมายงานแล้ว',
+      'success'
+    );
+
+    await loadInitialData();
+
+    showView('taskSection');
+
+    renderTaskList();
+
+  }catch(e){
+
+    toast(
+      e.message,
+      'error'
+    );
+
+  }
 
 }
 
