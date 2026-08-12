@@ -1007,7 +1007,7 @@ td{
             <input
               id="repLocation"
               required
-              placeholder="เช่น 1205">
+              placeholder="">
           </div>
 
           <div class="form-group">
@@ -1026,12 +1026,12 @@ td{
           <div class="form-group">
             <label>ระดับความด่วน</label>
 
-<select id="repPriority">
-  <option value="LOW">ต่ำ</option>
-  <option value="NORMAL" selected>ปกติ</option>
-  <option value="HIGH">สูง</option>
-  <option value="URGENT">ด่วนมาก</option>
-</select>
+            <select id="repPriority">
+              <option value="LOW">ต่ำ</option>
+              <option value="NORMAL" selected>ปกติ</option>
+              <option value="HIGH">สูง</option>
+              <option value="URGENT">ด่วนมาก</option>
+            </select>
 
           </div>
 
@@ -1289,25 +1289,8 @@ td{
 
 const LIFF_ID = '2010924055-ptu13GAx';
 
-const defaultDepartments = [
-  'ENGINEERING',
-  'HOUSEKEEPING',
-  'FRONT OFFICE',
-  'FOOD & BEVERAGE',
-  'KITCHEN',
-  'SECURITY',
-  'HUMAN RESOURCES',
-  'ACCOUNTING',
-  'SALES & MARKETING',
-  'PURCHASING',
-  'BANQUET',
-  'SPA',
-  'OTHER'
-];
-
-
 const API_URL =
-'https://script.google.com/macros/s/AKfycbx44qabDtmTJrsQERQ7m3yaxS_q_LyaZnZpcsoIw6R98VO_atIliCWo9puONR-7Ip7I/exec';
+'https://script.google.com/macros/s/AKfycbxUNeWS3JZCioGN5tK_y2vMBwQTkgkeDx2K67t-VqCalMuVSZZ6XX-4k9F54kqA9JmF/exec';
 
 
 /* =========================================================
@@ -1433,7 +1416,7 @@ async function checkUserAuth(){
     setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
 
     const r = await runServer(
-      'checkUserAuth',
+      'getUser',
       {
         userId:currentUser.userId
       }
@@ -1559,7 +1542,7 @@ async function loadInitialData(){
 
 function populateDepartmentOptions(){
 
-  const Departments = [
+  const defaultDepartments = [
 
     'ENGINEERING',
     'HOUSEKEEPING',
