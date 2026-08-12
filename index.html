@@ -1433,7 +1433,7 @@ async function checkUserAuth(){
     setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
 
     const r = await runServer(
-      'getUser',
+      'checkUserAuth',
       {
         userId:currentUser.userId
       }
