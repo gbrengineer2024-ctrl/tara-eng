@@ -1,4 +1,4 @@
-name: Fix Engineering UI modules
+name: Sync Engineering UI
 
 on:
   push:
@@ -14,103 +14,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch index.html
+
+      - name: Fix API endpoint and registration defaults
         shell: python3 {0}
         run: |
           from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          marker='TARA_UI_FIX_V4'
-          if marker in s:
-              print('UI patch already present')
-              raise SystemExit(0)
-          patch=r'''<script>
-/* TARA_UI_FIX_V4 */
-(function(){
-  const $=id=>document.getElementById(id);
-  const norm=v=>String(v==null?'':v).trim().toUpperCase();
-  const admin=()=>{const u=window.currentUser||{};const r=norm(u.role||u.Role||u.user_role);return r==='ADMIN'||r==='ADMINISTRATOR'||u.isAdmin===true||u.is_admin===true};
-  const staff=()=>((window.systemData||{}).staff||(window.systemData||{}).users||[]);
-  const techs=()=>staff().filter(x=>norm(x.status||'ACTIVE')==='ACTIVE'&&['TECHNICIAN','SUPERVISOR'].includes(norm(x.role)));
-  const esc2=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-  const escA=v=>esc2(v).replace(/`/g,'&#096;');
-  const stat=s=>({NEW:['NEW','badge-new'],IN_PROGRESS:['IN PROGRESS','badge-progress'],ON_HOLD:['ON HOLD','badge-hold'],PENDING_PARTS:['PENDING PARTS','badge-parts'],COMPLETED:['COMPLETED','badge-completed'],CANCELLED:['CANCELLED','badge-cancelled']})[norm(s)]||[norm(s||'NEW'),'badge'];
-  const pLabel=p=>({NORMAL:'ปกติ',URGENT:'ด่วนมาก',EMERGENCY:'🚨 ฉุกเฉิน'})[norm(p)]||p||'ปกติ';
-  const cLabel=c=>({ELECTRICAL:'ไฟฟ้า / แสงสว่าง',PLUMBING:'ประปา / สุขภัณฑ์',HVAC:'ระบบปรับอากาศ',FURNITURE:'เฟอร์นิเจอร์ / อาคาร',OTHER:'อื่น ๆ'})[norm(c)]||c||'-';
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
 
-  function showAdmin(){const m=$('adminMenu');if(m&&admin())m.classList.remove('hidden')}
+          old_api = 'https://script.google.com/macros/s/AKfycbyRYWVrJbZpSzMMQQZB7OhjWHa9LW6_KVtI6sZS4ScvuEQ1TPPePR1zly77eDQQfl6q/exec'
+          new_api = 'https://script.google.com/macros/s/AKfycbx44qabDtmTJrsQERQ7m3yaxS_q_LyaZnZpcsoIw6R98VO_atIliCWo9puONR-7Ip7I/exec'
+          s = s.replace(old_api, new_api)
 
-  window.ticketActionButtons=function(t){
-    const s=norm(t.status),b=[];
-    if((admin()||typeof hasPermission==='function'&&hasPermission('CHANGE_STATUS'))&&s==='NEW')b.push(`<button class="btn-blue" onclick="assignTicketUI('${escA(t.ticket_no)}')">👷 มอบหมายช่าง</button>`);
-    if(s==='NEW'&&typeof hasPermission==='function'&&hasPermission('CHANGE_STATUS'))b.push(`<button class="btn-success" onclick="changeTicketStatus('${escA(t.ticket_no)}','IN_PROGRESS')">▶ รับงาน</button>`);
-    if(s==='IN_PROGRESS'&&typeof hasPermission==='function'&&hasPermission('CHANGE_STATUS'))b.push(`<button class="btn-warning" onclick="changeTicketStatus('${escA(t.ticket_no)}','ON_HOLD')">⏸ พักงาน</button>`);
-    if(s==='ON_HOLD'&&typeof hasPermission==='function'&&hasPermission('CHANGE_STATUS'))b.push(`<button class="btn-blue" onclick="changeTicketStatus('${escA(t.ticket_no)}','IN_PROGRESS')">▶ ทำต่อ</button>`);
-    if(s==='IN_PROGRESS'&&typeof hasPermission==='function'&&hasPermission('CHANGE_STATUS'))b.push(`<button class="btn-purple" onclick="changeTicketStatus('${escA(t.ticket_no)}','PENDING_PARTS')">📦 รออะไหล่</button>`);
-    if((s==='IN_PROGRESS'||s==='ON_HOLD')&&typeof hasPermission==='function'&&hasPermission('CLOSE_TICKET'))b.push(`<button class="btn-success" onclick="completeTicket('${escA(t.ticket_no)}')">✓ เสร็จงาน</button>`);
-    if(s==='PENDING_PARTS')b.push(`<button class="btn-purple" onclick="createPendingPartsPDFUI('${escA(t.ticket_no)}')">📄 PDF</button>`);
-    return b.join('');
-  };
+          marker = "const defaultDepartments = ["
+          if marker not in s:
+              anchor = "const LIFF_ID = '2010924055-ptu13GAx';"
+              departments = '''\n\nconst defaultDepartments = [\n  'ENGINEERING',\n  'HOUSEKEEPING',\n  'FRONT OFFICE',\n  'FOOD & BEVERAGE',\n  'KITCHEN',\n  'SECURITY',\n  'HUMAN RESOURCES',\n  'ACCOUNTING',\n  'SALES & MARKETING',\n  'PURCHASING',\n  'BANQUET',\n  'SPA',\n  'OTHER'\n];\n'''
+              s = s.replace(anchor, anchor + departments, 1)
 
-  window.ticketCardHtml=function(t){
-    const si=stat(t.status);
-    return `<div class="ticket-card"><div class="ticket-top"><div><div class="ticket-no">${esc2(t.ticket_no||'-')}</div><div class="ticket-location">📍 ${esc2(t.location||'-')}</div></div><span class="badge ${si[1]}">${si[0]}</span></div><div style="margin-top:8px"><span class="badge">${esc2(pLabel(t.priority))}</span> <span class="badge">${esc2(cLabel(t.category))}</span></div><div class="ticket-issue">${esc2(t.issue||'-')}</div><div class="ticket-meta"><div>👤 ${esc2(t.reporter||'-')}</div><div>🔧 ${esc2(t.technician||'ยังไม่มอบหมาย')}</div><div>🏢 ${esc2(t.department||'-')}</div><div>🕒 ${esc2(typeof formatDateValue==='function'?formatDateValue(t.created_at):t.created_at||'-')}</div></div><div class="ticket-actions"><button class="btn-secondary" onclick="viewTicket('${escA(t.ticket_no)}')">รายละเอียด</button>${window.ticketActionButtons(t)}</div></div>`;
-  };
+          p.write_text(s, encoding='utf-8')
 
-  window.assignTicketUI=function(no){
-    const a=techs();
-    if(!a.length){toast('ไม่พบช่างใน Staff Management','error');return}
-    modalTitle.textContent='👷 มอบหมายช่าง • '+no;
-    modalBody.innerHTML=`<div class="form-group"><label>ช่างผู้รับผิดชอบ</label><select id="assignTech">${a.map(x=>`<option value="${escA(x.line_user_id||x.emp_id||x.full_name)}">${esc2(x.full_name||x.name||x.displayName||'-')} • ${esc2(x.emp_id||'')}</option>`).join('')}</select></div><button class="btn-primary" onclick="saveAssignmentUI('${escA(no)}')">💾 มอบหมายงาน</button>`;
-    openModal();
-  };
-  window.saveAssignmentUI=async function(no){
-    try{
-      const a=techs();const x=a.find(z=>String(z.line_user_id||z.emp_id||z.full_name)===String($('assignTech').value));
-      if(!x)throw new Error('ไม่พบช่าง');
-      const r=await runServer('assignTicket',{line_user_id:currentUser.userId,ticketNo:no,technician_line_user_id:x.line_user_id||'',technician_emp_id:x.emp_id||'',technician_name:x.full_name||x.name||x.displayName||''});
-      if(r.status!=='success')throw new Error(r.message||'มอบหมายงานไม่สำเร็จ');
-      closeModal();toast('มอบหมายช่างสำเร็จ','success');await loadInitialData();showView('taskSection');renderTaskList();
-    }catch(e){toast(e.message,'error')}
-  };
-
-  window.renderStock=function(){
-    const a=(systemData.inventory||systemData.products||systemData.items||[]);
-    stockList.innerHTML=a.length?`<div class="table-wrap"><table><thead><tr><th>รหัสสินค้า</th><th>รายการสินค้า</th><th>หมวด</th><th>หน่วย</th><th>คงเหลือ</th><th>Min</th><th>สถานะ</th><th></th></tr></thead><tbody>${a.map(x=>{const code=x.item_code||x.code||x.Item_Code||'';return `<tr><td><b>${esc2(code||'-')}</b></td><td>${esc2(x.item_name||x.name||x.Item_Name||'-')}</td><td>${esc2(x.item_category||x.category||'-')}</td><td>${esc2(x.unit||'-')}</td><td><b>${esc2(x.stock??x.quantity??0)}</b></td><td>${esc2(x.min_stock??0)}</td><td>${esc2(x.status||'-')}</td><td>${admin()?`<button class="btn-secondary small-btn" onclick="openInventoryItem('${escA(code)}')">แก้ไข</button>`:'-'}</td></tr>`}).join('')}</tbody></table></div>`:emptyHtml('📦','ยังไม่มีรายการสินค้าใน Inventory');
-  };
-
-  window.openInventoryItem=function(code){
-    const a=(systemData.inventory||systemData.products||systemData.items||[]);const x=a.find(z=>String(z.item_code||z.code)===String(code||''));
-    modalTitle.textContent=x?'📦 แก้ไขสินค้า':'📦 เพิ่มสินค้า';
-    modalBody.innerHTML=`<div class="form-group"><label>รหัสสินค้า</label><input id="invCode" value="${escA(x?.item_code||x?.code||'')}" ${x?'readonly':''}></div><div class="form-group"><label>รายการสินค้า</label><input id="invName" value="${escA(x?.item_name||x?.name||'')}"></div><div class="form-group"><label>หมวดสินค้า</label><input id="invCat" value="${escA(x?.item_category||x?.category||'')}"></div><div class="form-group"><label>หน่วย</label><input id="invUnit" value="${escA(x?.unit||'pcs')}"></div><div class="form-group"><label>Minimum Stock</label><input id="invMin" type="number" min="0" value="${Number(x?.min_stock||0)}"></div><button class="btn-primary" onclick="saveInventoryUI(${x?'true':'false'})">💾 บันทึกสินค้า</button>`;openModal();
-  };
-  window.saveInventoryUI=async function(editing){try{const r=await runServer(editing?'updateInventoryItem':'createInventoryItem',{line_user_id:currentUser.userId,item_code:$('invCode').value.trim(),item_name:$('invName').value.trim(),item_category:$('invCat').value.trim(),unit:$('invUnit').value.trim(),min_stock:Number($('invMin').value||0)});if(r.status!=='success')throw new Error(r.message||'บันทึกสินค้าไม่สำเร็จ');closeModal();toast('บันทึกสินค้าแล้ว','success');await loadInitialData();showView('stockSection');renderStock()}catch(e){toast(e.message,'error')}};
-  window.openStockMove=function(type){
-    const a=(systemData.inventory||systemData.products||systemData.items||[]);if(!a.length){toast('ยังไม่มีรายการสินค้า ให้เพิ่มสินค้าใน Inventory ก่อน','warning');return}
-    modalTitle.textContent=type==='IN'?'📥 Stock In':'📤 Stock Out';modalBody.innerHTML=`<div class="form-group"><label>รายการสินค้า</label><select id="moveCode">${a.map(x=>`<option value="${escA(x.item_code||x.code||'')}">${esc2(x.item_code||x.code||'-')} • ${esc2(x.item_name||x.name||'-')} • คงเหลือ ${esc2(x.stock??x.quantity??0)}</option>`).join('')}</select></div><div class="form-group"><label>จำนวน</label><input id="moveQty" type="number" min="1"></div><div class="form-group"><label>หมายเหตุ</label><textarea id="moveNote"></textarea></div><button class="btn-primary" onclick="saveStockMove('${type}')">💾 บันทึก</button>`;openModal();
-  };
-
-  window.renderStaff=function(){const a=systemData.staff||systemData.users||[];staffList.innerHTML=a.length?`<div class="table-wrap"><table><thead><tr><th>พนักงาน</th><th>แผนก</th><th>Role</th><th>Status</th><th>จัดการ</th></tr></thead><tbody>${a.map(x=>`<tr><td><b>${esc2(x.full_name||x.name||x.displayName||'-')}</b><br><small>${esc2(x.emp_id||'-')}</small></td><td>${esc2(x.department||'-')}</td><td><span class="badge">${esc2(x.role||'REPORTER')}</span></td><td>${esc2(x.status||'ACTIVE')}</td><td>${admin()?`<button class="btn-secondary small-btn" onclick="editStaff('${escA(x.line_user_id||x.emp_id||'')}")">แก้ไข</button>`:'-'}</td></tr>`).join('')}</tbody></table></div>`:emptyHtml('👤','ยังไม่มีข้อมูล Staff จากระบบ');};
-
-  const groups=[['Category',['CATEGORY','CATEGORIES_JSON']],['Priority',['PRIORITY','PRIORITIES_JSON']],['Ticket Status',['TICKET_STATUS','TICKET_STATUSES_JSON']],['Zone',['ZONE','ZONES_JSON']],['Location Status',['LOCATION_STATUS','LOCATION_STATUSES_JSON']],['Department',['DEPARTMENT','DEPARTMENTS_JSON']],['Role',['ROLE','ROLES_JSON']],['User Status',['USER_STATUS','USER_STATUSES_JSON']],['Movement Type',['MOVEMENT_TYPE','MOVEMENT_TYPES_JSON']],['PR Status',['PR_STATUS','PR_STATUSES_JSON']],['Item Category',['ITEM_CATEGORY','ITEM_CATEGORIES_JSON']]];
-  window.renderSettings=function(){
-    const s=systemData.settings||{};let html='<div class="notice">Master Data ที่ใช้ในระบบ: Category, Priority, Ticket Status, Zone, Location Status, Department, Role, User Status, Movement Type, PR Status และ Item Category</div><div class="setting-grid">';
-    groups.forEach(g=>{const key=g[1].find(k=>Object.prototype.hasOwnProperty.call(s,k));const val=key?s[key]:'';html+=`<div class="setting-item"><div class="setting-key">${g[0]}</div><div class="setting-value">${esc2(Array.isArray(val)?val.join(', '):val||'ยังไม่มีข้อมูล')}</div><div class="setting-actions"><button class="btn-secondary small-btn" onclick="editSetting('${key||g[1][1]}')">แก้ไข</button></div></div>`});
-    Object.keys(s).filter(k=>!groups.some(g=>g[1].includes(k))).forEach(k=>{html+=`<div class="setting-item"><div class="setting-key">System • ${esc2(k)}</div><div class="setting-value">${esc2(Array.isArray(s[k])?s[k].join(', '):typeof s[k]==='object'?JSON.stringify(s[k]):s[k]??'')}</div><div class="setting-actions"><button class="btn-secondary small-btn" onclick="editSetting('${escA(k)}')">แก้ไข</button></div></div>`});
-    html+='</div>';settingsList.innerHTML=html;
-  };
-
-  function fixPhotoUI(){const cam=$('repCamera');if(cam)cam.remove();const tools=document.querySelector('.photo-tools');if(tools)tools.remove();const inp=$('repPhotos');if(inp){inp.setAttribute('capture','environment');const parent=inp.parentElement;if(parent&&!parent.querySelector('.tara-photo-btn')){const b=document.createElement('button');b.type='button';b.className='btn-blue tara-photo-btn';b.textContent='📷 ถ่ายรูป / เลือกรูป';b.style.width='100%';b.onclick=()=>inp.click();parent.insertBefore(b,inp);inp.classList.add('hidden')}}}
-  function fix(){showAdmin();fixPhotoUI();}
-  window.addEventListener('load',()=>setTimeout(fix,100));setInterval(fix,1200);
-})();
-</script>'''
-          s=s.replace('</body>',patch+'\n</body>',1)
-          p.write_text(s,encoding='utf-8')
-      - name: Commit
+      - name: Commit frontend fix
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git commit -m "Fix admin modules, inventory, staff, settings and repair UI" || exit 0
+          if git diff --cached --quiet; then
+            echo 'No frontend changes needed'
+            exit 0
+          fi
+          git commit -m 'fix: frontend API endpoint and registration'
           git push
