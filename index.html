@@ -2640,29 +2640,20 @@ function technicianAssignHtml(t){
 
   if(!isSupOrAdmin())return '';
 
-  const s =
-    String(
-      t.status || ''
-    ).toUpperCase();
+  const s = String(t.status || '').toUpperCase();
 
-  if(
-    s === 'CANCELLED' ||
-    s === 'COMPLETED'
-  )return '';
+  if(s === 'CANCELLED' || s === 'COMPLETED')return '';
 
-  const techs =
-    systemData.technicians || [];
+  const techs = systemData.technicians || [];
 
   if(!techs.length)return '';
 
   return `
     <div class="assign-row">
 
-      <select id="assignTech_${escAttr(t.ticket_no)}">
+      <select class="assignTechSelect">
 
-        <option value="">
-          -- เลือกช่าง --
-        </option>
+        <option value="">-- เลือกช่าง --</option>
 
         ${techs.map(
           x => `
@@ -2670,14 +2661,11 @@ function technicianAssignHtml(t){
               value="${escAttr(x.full_name)}"
               data-id="${escAttr(x.line_user_id || '')}"
               ${
-                String(t.technician || '') ===
-                String(x.full_name || '')
+                String(t.technician || '') === String(x.full_name || '')
                   ? 'selected'
                   : ''
               }>
-
               ${esc(x.full_name || '-')}
-
             </option>
           `
         ).join('')}
@@ -2685,20 +2673,16 @@ function technicianAssignHtml(t){
       </select>
 
       <button
+        type="button"
         class="btn-blue small-btn"
-        onclick="assignTechnicianUI(
-          '${escAttr(t.ticket_no)}'
-        )">
-
+        onclick="assignTechnicianUI(this,'${escAttr(t.ticket_no)}')">
         👷 มอบหมาย
-
       </button>
 
     </div>
   `;
 
 }
-
 
 /* =========================================================
    VIEW TICKET
@@ -2994,84 +2978,51 @@ async function cancelTicketUI(no){
    TECHNICIAN ASSIGNMENT (Supervisor / Admin)
 ========================================================= */
 
-async function assignTechnicianUI(no){
+async function assignTechnicianUI(btn, no){
 
   try{
 
-    const select =
-      document.getElementById(
-        'assignTech_' + no
-      );
+    const row = btn.closest('.assign-row');
+    const select = row ? row.querySelector('select') : null;
 
-    const technician =
-      select ? select.value : '';
+    const technician = select ? select.value : '';
 
     const technicianId =
       select && select.selectedIndex >= 0
-        ? select
-            .options[select.selectedIndex]
-            .dataset.id
+        ? (select.options[select.selectedIndex].dataset.id || '')
         : '';
 
     if(!technician){
-
-      toast(
-        'กรุณาเลือกช่าง',
-        'error'
-      );
-
+      toast('กรุณาเลือกช่าง', 'error');
       return;
-
     }
 
-    const r =
-      await runServer(
-        'assignTechnician',
-        {
-
-          line_user_id:
-            currentUser.userId,
-
-          ticketNo:no,
-
-          technician:technician,
-
-          technicianId:technicianId
-
-        }
-      );
+    const r = await runServer('assignTechnician', {
+      line_user_id: currentUser.userId,
+      ticketNo: no,
+      technician: technician,
+      technicianId: technicianId
+    });
 
     if(r.status !== 'success'){
-
-      throw new Error(
-        r.message ||
-        'มอบหมายงานไม่สำเร็จ'
-      );
-
+      throw new Error(r.message || 'มอบหมายงานไม่สำเร็จ');
     }
 
-    toast(
-      'มอบหมายงานแล้ว',
-      'success'
-    );
+    toast('มอบหมายงานแล้ว', 'success');
+
+    if(!document.getElementById('modal').classList.contains('hidden')){
+      closeModal(false);
+    }
 
     await loadInitialData();
-
     showView('taskSection');
-
     renderTaskList();
 
   }catch(e){
-
-    toast(
-      e.message,
-      'error'
-    );
-
+    toast(e.message, 'error');
   }
 
 }
-
 
 /* =========================================================
    STATUS UPDATE
