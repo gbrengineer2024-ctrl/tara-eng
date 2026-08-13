@@ -1325,37 +1325,75 @@ window.addEventListener('load', initSystem);
 
 
 async function initSystem(){
+
   try{
+
     setLoading('⏳ กำลังเชื่อมต่อระบบ...');
 
-    await liff.init({
-      liffId: LIFF_ID,
-      withLoginOnExternalBrowser: true
-    });
+    if(typeof liff === 'undefined'){
+      throw new Error('ไม่พบ LIFF SDK');
+    }
+
+    await Promise.race([
+
+      liff.init({
+        liffId: LIFF_ID
+      }),
+
+      new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              'LIFF เชื่อมต่อไม่สำเร็จภายใน 15 วินาที'
+            )
+          );
+        }, 15000);
+      })
+
+    ]);
 
     if(!liff.isLoggedIn()){
+
       liff.login({
         redirectUri: window.location.href
       });
+
       return;
     }
 
-    currentProfile = await liff.getProfile();
+    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
+
+    currentProfile =
+      await liff.getProfile();
 
     currentUser = {
-      userId: currentProfile.userId,
-      displayName: currentProfile.displayName,
-      pictureUrl: currentProfile.pictureUrl || ''
+      userId:
+        currentProfile.userId,
+
+      displayName:
+        currentProfile.displayName,
+
+      pictureUrl:
+        currentProfile.pictureUrl || ''
     };
 
     await checkUserAuth();
 
   }catch(e){
-    console.error('initSystem error:', e);
-    showFatalError(e && e.message ? e.message : String(e));
-  }
-}
 
+    console.error(
+      'initSystem ERROR:',
+      e
+    );
+
+    showFatalError(
+      e?.message ||
+      'ไม่สามารถเชื่อมต่อระบบได้'
+    );
+
+  }
+
+}
 
 /* =========================================================
    GOOGLE APPS SCRIPT API
