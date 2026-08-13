@@ -1325,40 +1325,35 @@ window.addEventListener('load', initSystem);
 
 
 async function initSystem(){
-
   try{
-
-    setLoading('⏳ กำลังเชื่อมต่อ LINE...');
+    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
 
     await liff.init({
-      liffId:LIFF_ID
+      liffId: LIFF_ID,
+      withLoginOnExternalBrowser: true
     });
 
     if(!liff.isLoggedIn()){
-
-      liff.login();
-
+      liff.login({
+        redirectUri: window.location.href
+      });
       return;
     }
-
-    setLoading('⏳ กำลังอ่านข้อมูล LINE...');
 
     currentProfile = await liff.getProfile();
 
     currentUser = {
-      userId:currentProfile.userId,
-      displayName:currentProfile.displayName,
-      pictureUrl:currentProfile.pictureUrl || ''
+      userId: currentProfile.userId,
+      displayName: currentProfile.displayName,
+      pictureUrl: currentProfile.pictureUrl || ''
     };
 
     await checkUserAuth();
 
   }catch(e){
-
-    showFatalError(e.message);
-
+    console.error('initSystem error:', e);
+    showFatalError(e && e.message ? e.message : String(e));
   }
-
 }
 
 
@@ -1413,7 +1408,7 @@ async function checkUserAuth(){
 
   try{
 
-    setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
+    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
 
     const r = await runServer(
       'getUser',
