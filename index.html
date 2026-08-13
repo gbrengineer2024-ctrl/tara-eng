@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Work Order Management</title>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="preconnect" href="https://static.line-scdn.net">
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="dns-prefetch" href="https://static.line-scdn.net">
+<link rel="dns-prefetch" href="https://script.google.com">
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
 
 <style>
 :root{
@@ -1332,7 +1337,7 @@ let modalPromptResolve = null;
    START
 ========================================================= */
 
-window.addEventListener('load', initSystem);
+document.addEventListener('DOMContentLoaded', initSystem);
 
 
 async function initSystem(){
@@ -1352,7 +1357,36 @@ async function initSystem(){
       return;
     }
 
-    setLoading('⏳ กำลังอ่านข้อมูล LINE...');
+    setLoading('⏳ กำลังยืนยันตัวตน...');
+
+    // liff.getDecodedIDToken() reads the ID token that liff.init()
+    // already fetched — it costs no extra network round trip, unlike
+    // liff.getProfile() which calls out to LINE's servers again.
+    // Grabbing the userId this way lets us start the getUser call to
+    // our own backend immediately, in parallel with getProfile(),
+    // instead of waiting for getProfile() to finish first.
+    let idToken = null;
+
+    try{
+      idToken = liff.getDecodedIDToken();
+    }catch(e){
+      idToken = null;
+    }
+
+    const quickUserId =
+      idToken && idToken.sub
+        ? idToken.sub
+        : null;
+
+    const authPromise =
+      quickUserId
+
+        ? runServer(
+            'getUser',
+            { userId:quickUserId }
+          )
+
+        : null;
 
     currentProfile = await liff.getProfile();
 
@@ -1362,7 +1396,22 @@ async function initSystem(){
       pictureUrl:currentProfile.pictureUrl || ''
     };
 
-    await checkUserAuth();
+    if(authPromise){
+
+      // The getUser call was already in flight — just wait for it
+      // and handle the result without firing it a second time.
+      const r = await authPromise;
+
+      await handleAuthResult(r);
+
+    }else{
+
+      // Fallback for the rare case getDecodedIDToken() isn't
+      // available (e.g. openid scope not granted) — behaves exactly
+      // like before, one call after the other.
+      await checkUserAuth();
+
+    }
 
   }catch(e){
 
@@ -1433,42 +1482,52 @@ async function checkUserAuth(){
       }
     );
 
-    if(
-      r.status === 'APPROVED' ||
-      (
-        r.status === 'success' &&
-        r.registered
-      )
-    ){
-
-      currentUser = Object.assign(
-        {},
-        currentUser,
-        r.data || r.user || {}
-      );
-
-      await loadInitialData();
-
-      return;
-    }
-
-    if(r.status === 'NOT_REGISTERED'){
-
-      showRegister();
-
-      return;
-    }
-
-    throw new Error(
-      r.message ||
-      'ไม่สามารถตรวจสอบบัญชีได้'
-    );
+    await handleAuthResult(r);
 
   }catch(e){
 
     showFatalError(e.message);
 
   }
+
+}
+
+
+async function handleAuthResult(r){
+
+  if(
+    r &&
+    (
+      r.status === 'APPROVED' ||
+      (
+        r.status === 'success' &&
+        r.registered
+      )
+    )
+  ){
+
+    currentUser = Object.assign(
+      {},
+      currentUser,
+      r.data || r.user || {}
+    );
+
+    await loadInitialData();
+
+    return;
+  }
+
+  if(r && r.status === 'NOT_REGISTERED'){
+
+    showRegister();
+
+    return;
+  }
+
+  throw new Error(
+    (r && r.message) ||
+    'ไม่สามารถตรวจสอบบัญชีได้'
+  );
 
 }
 
