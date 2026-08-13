@@ -755,18 +755,18 @@ td{
         </div>
 
         <div class="section-note">
-          ระบบจะเชื่อมบัญชี LINE นี้กับข้อมูลพนักงาน
+          ระบบจะเชื่อมบัญชี LINE นี้กับข้อมูลผู้ใช้งาน
         </div>
 
         <form id="regForm">
 
           <div class="form-group">
-            <label>รหัสพนักงาน</label>
+            <label>รหัสผู้ใช้งาน</label>
             <input id="regEmpId" value="สร้างอัตโนมัติ" readonly>
           </div>
 
           <div class="form-group">
-            <label>ชื่อ-นามสกุล</label>
+            <label>ชื่อ</label>
             <input id="regFullName" required>
           </div>
 
@@ -935,7 +935,7 @@ td{
 
             <div class="menu-icon">👤</div>
             <div class="menu-title">Staff</div>
-            <div class="menu-sub">จัดการพนักงาน</div>
+            <div class="menu-sub">จัดการผู้ใช้งาน</div>
 
           </div>
 
@@ -1003,7 +1003,7 @@ td{
         <form id="repairForm">
 
           <div class="form-group">
-            <label>สถานที่ / เลขห้อง</label>
+            <label>เลขห้อง / สถานที่</label>
             <input
               id="repLocation"
               required
@@ -1027,9 +1027,9 @@ td{
             <label>ระดับความด่วน</label>
 
             <select id="repPriority">
-              <option value="LOW">ต่ำ</option>
-              <option value="NORMAL">ปกติ</option>
-              <option value="HIGH">สูง</option>
+              <option value="LOW">ปกติ</option>
+              <option value="NORMAL">สูง</option>
+              <option value="HIGH">ด่วน</option>
               <option value="URGENT">ด่วนมาก</option>
             </select>
 
@@ -1290,7 +1290,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbxIW4spFLy8pQkH4lApgkWGpl3zyaUUebanrMjXHzpAM0PuyUud6cHtWz_dg6NkNpNU/exec';
+'https://script.google.com/macros/s/AKfycbx83bAieIzO452YVb1quXP7MosYSXKQV3rawjubHj9NtdQs8AFWnWS5xIZhCzq_lsuj/exec';
 
 
 /* =========================================================
