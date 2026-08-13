@@ -570,19 +570,19 @@ td{
   background:rgba(15,23,42,.55);
   display:flex;
   justify-content:center;
-  align-items:flex-end;
-  padding:0;
+  align-items:center;
+  padding:16px;
 }
 
 .modal-box{
   width:100%;
-  max-width:700px;
-  max-height:88vh;
+  max-width:520px;
+  max-height:85vh;
   overflow:auto;
   background:#fff;
-  border-radius:24px 24px 0 0;
-  padding:18px;
-  box-shadow:0 -10px 40px rgba(0,0,0,.18);
+  border-radius:22px;
+  padding:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
 }
 
 .modal-header{
@@ -1290,7 +1290,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbx83bAieIzO452YVb1quXP7MosYSXKQV3rawjubHj9NtdQs8AFWnWS5xIZhCzq_lsuj/exec';
+'https://script.google.com/macros/s/AKfycbxkOcIdrgiZqVwkAKBj_EJPQHwZuH8ag4Lpy8pul8rSHFDZATOtkhNPkBZ8R1eRYZHh/exec';
 
 
 /* =========================================================
@@ -2956,20 +2956,51 @@ async function saveTicketEdit(no){
    TICKET CANCEL (Supervisor / Admin)
 ========================================================= */
 
+function askConfirm(message, confirmLabel){
+
+  return new Promise(resolve => {
+
+    modalPromptResolve = resolve;
+
+    document.getElementById('modalTitle').textContent = 'ยืนยันการทำงาน';
+
+    document.getElementById('modalBody').innerHTML = `
+      <p style="margin:0 0 18px;color:#374151;font-size:14px;line-height:1.6;">
+        ${esc(message)}
+      </p>
+      <div class="ticket-actions">
+        <button class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn-danger" onclick="confirmDialogYes()">${esc(confirmLabel || 'ยืนยัน')}</button>
+      </div>
+    `;
+
+    openModal();
+
+  });
+
+}
+
+function confirmDialogYes(){
+
+  if(modalPromptResolve){
+    const resolve = modalPromptResolve;
+    modalPromptResolve = null;
+    closeModal(false);
+    resolve(true);
+  }
+
+}
+
 async function cancelTicketUI(no){
 
-  if(
-    !confirm(
-      'ยืนยันยกเลิกงาน ' +
-      no +
-      ' ใช่หรือไม่?'
-    )
-  )return;
-
-  await changeTicketStatus(
-    no,
-    'CANCELLED'
+  const confirmed = await askConfirm(
+    'ยืนยันยกเลิกงาน ' + no + ' ใช่หรือไม่?',
+    'ยกเลิกงาน'
   );
+
+  if(!confirmed) return;
+
+  await changeTicketStatus(no, 'CANCELLED');
 
 }
 
@@ -3338,101 +3369,74 @@ function openStockMove(type,ticketNo){
       x => {
 
         const code =
-          String(
-            x.item_code || ''
-          ).trim();
+          String(x.item_code || '').trim();
 
         if(!code)return '';
 
         return `
           <option value="${escAttr(code)}">
-
             ${esc(x.item_name || code)}
             —
             Stock ${esc(x.stock ?? 0)}
             ${esc(x.unit || '')}
-
           </option>
         `;
 
       }
     ).join('');
 
-  document.getElementById(
-    'modalTitle'
-  ).textContent =
-    type === 'IN'
-      ? '📥 Stock In'
-      : '📤 Stock Out';
+  let purposeValue = '';
+  let purposeReadonly = '';
 
-  document.getElementById(
-    'modalBody'
-  ).innerHTML = `
+  if(ticketNo){
+
+    const ticket =
+      (systemData.tickets || []).find(x => String(x.ticket_no) === String(ticketNo)) ||
+      (systemData.departmentTickets || []).find(x => String(x.ticket_no) === String(ticketNo));
+
+    purposeValue =
+      'งาน ' + ticketNo + (ticket && ticket.location ? ' — ' + ticket.location : '');
+
+    purposeReadonly = 'readonly';
+
+  }
+
+  document.getElementById('modalTitle').textContent =
+    type === 'IN' ? '📥 Stock In' : '📤 Stock Out';
+
+  document.getElementById('modalBody').innerHTML = `
 
     <div class="form-group">
-
       <label>สินค้า</label>
-
       <select id="moveCode">
-
-        <option value="">
-          -- เลือกรายการสินค้า --
-        </option>
-
+        <option value="">-- เลือกรายการสินค้า --</option>
         ${options}
-
       </select>
-
     </div>
 
     <div class="form-group">
-
       <label>จำนวน</label>
-
-      <input
-        id="moveQty"
-        type="number"
-        min="1"
-        step="1">
-
+      <input id="moveQty" type="number" min="1" step="1">
     </div>
 
     <div class="form-group">
-
-      <label>
-        ${type === 'IN'
-          ? 'แหล่งที่มา'
-          : 'นำไปใช้ที่ไหน'}
-      </label>
-
+      <label>${type === 'IN' ? 'แหล่งที่มา' : 'นำไปใช้ที่ไหน'}</label>
       <input
         id="movePurpose"
-        placeholder="${
-          type === 'IN'
-            ? 'เช่น Supplier / PO'
-            : 'เช่น ห้อง 305 / งาน PM'
-        }">
-
+        value="${escAttr(purposeValue)}"
+        ${purposeReadonly}
+        placeholder="${type === 'IN' ? 'เช่น Supplier / PO' : 'เช่น ห้อง 305 / งาน PM'}">
     </div>
 
     <div class="form-group">
-
       <label>หมายเหตุ</label>
-
-      <textarea
-        id="moveNote"></textarea>
-
+      <textarea id="moveNote"></textarea>
     </div>
 
     <button
       class="btn-primary"
-      onclick="saveStockMove(
-        '${type}',
-        '${escAttr(ticketNo || '')}'
-      )">
-
+      onclick="saveStockMove('${type}','${escAttr(ticketNo || '')}')">
       💾 บันทึก
-
     </button>
 
   `;
@@ -4336,10 +4340,10 @@ function closeModal(resolveCancel=true){
 
     modalPromptResolve = null;
 
-    resolve('');
+    resolve(false);
 
   }
-
+  ...
   document
     .getElementById('modal')
     .classList.add('hidden');
