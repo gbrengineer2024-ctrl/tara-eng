@@ -755,18 +755,18 @@ td{
         </div>
 
         <div class="section-note">
-          ระบบจะเชื่อมบัญชี LINE นี้กับข้อมูลผู้ใช้งาน
+          ระบบจะเชื่อมบัญชี LINE นี้กับข้อมูลพนักงาน
         </div>
 
         <form id="regForm">
 
           <div class="form-group">
-            <label>รหัสผู้ใช้งาน</label>
+            <label>รหัสพนักงาน</label>
             <input id="regEmpId" value="สร้างอัตโนมัติ" readonly>
           </div>
 
           <div class="form-group">
-            <label>ชื่อ</label>
+            <label>ชื่อ-นามสกุล</label>
             <input id="regFullName" required>
           </div>
 
@@ -935,7 +935,7 @@ td{
 
             <div class="menu-icon">👤</div>
             <div class="menu-title">Staff</div>
-            <div class="menu-sub">จัดการผู้ใช้งาน</div>
+            <div class="menu-sub">จัดการพนักงาน</div>
 
           </div>
 
@@ -1003,7 +1003,7 @@ td{
         <form id="repairForm">
 
           <div class="form-group">
-            <label>เลขห้อง / สถานที่</label>
+            <label>สถานที่ / เลขห้อง</label>
             <input
               id="repLocation"
               required
@@ -1027,9 +1027,9 @@ td{
             <label>ระดับความด่วน</label>
 
             <select id="repPriority">
-              <option value="LOW">ปกติ</option>
-              <option value="NORMAL">สูง</option>
-              <option value="HIGH">ด่วน</option>
+              <option value="LOW">ต่ำ</option>
+              <option value="NORMAL">ปกติ</option>
+              <option value="HIGH">สูง</option>
               <option value="URGENT">ด่วนมาก</option>
             </select>
 
@@ -1290,7 +1290,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbxkOcIdrgiZqVwkAKBj_EJPQHwZuH8ag4Lpy8pul8rSHFDZATOtkhNPkBZ8R1eRYZHh/exec';
+'https://script.google.com/macros/s/AKfycbxB09S9m7GlRmiiYiSeg8eKHam9zljJNQjnfj5IQl1L_EBfqJvcfykxKfrNIharJvk/exec';
 
 
 /* =========================================================
@@ -1328,72 +1328,39 @@ async function initSystem(){
 
   try{
 
-    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
+    setLoading('⏳ กำลังเชื่อมต่อ LINE...');
 
-    if(typeof liff === 'undefined'){
-      throw new Error('ไม่พบ LIFF SDK');
-    }
-
-    await Promise.race([
-
-      liff.init({
-        liffId: LIFF_ID
-      }),
-
-      new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(
-            new Error(
-              'LIFF เชื่อมต่อไม่สำเร็จภายใน 15 วินาที'
-            )
-          );
-        }, 15000);
-      })
-
-    ]);
+    await liff.init({
+      liffId:LIFF_ID
+    });
 
     if(!liff.isLoggedIn()){
 
-      liff.login({
-        redirectUri: window.location.href
-      });
+      liff.login();
 
       return;
     }
 
-    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
+    setLoading('⏳ กำลังอ่านข้อมูล LINE...');
 
-    currentProfile =
-      await liff.getProfile();
+    currentProfile = await liff.getProfile();
 
     currentUser = {
-      userId:
-        currentProfile.userId,
-
-      displayName:
-        currentProfile.displayName,
-
-      pictureUrl:
-        currentProfile.pictureUrl || ''
+      userId:currentProfile.userId,
+      displayName:currentProfile.displayName,
+      pictureUrl:currentProfile.pictureUrl || ''
     };
 
     await checkUserAuth();
 
   }catch(e){
 
-    console.error(
-      'initSystem ERROR:',
-      e
-    );
-
-    showFatalError(
-      e?.message ||
-      'ไม่สามารถเชื่อมต่อระบบได้'
-    );
+    showFatalError(e.message);
 
   }
 
 }
+
 
 /* =========================================================
    GOOGLE APPS SCRIPT API
@@ -1446,7 +1413,7 @@ async function checkUserAuth(){
 
   try{
 
-    setLoading('⏳ กำลังเชื่อมต่อระบบ...');
+    setLoading('⏳ กำลังยืนยันตัวตนผ่าน LINE...');
 
     const r = await runServer(
       'getUser',
@@ -2673,11 +2640,18 @@ function technicianAssignHtml(t){
 
   if(!isSupOrAdmin())return '';
 
-  const s = String(t.status || '').toUpperCase();
+  const s =
+    String(
+      t.status || ''
+    ).toUpperCase();
 
-  if(s === 'CANCELLED' || s === 'COMPLETED')return '';
+  if(
+    s === 'CANCELLED' ||
+    s === 'COMPLETED'
+  )return '';
 
-  const techs = systemData.technicians || [];
+  const techs =
+    systemData.technicians || [];
 
   if(!techs.length)return '';
 
@@ -2686,7 +2660,9 @@ function technicianAssignHtml(t){
 
       <select class="assignTechSelect">
 
-        <option value="">-- เลือกช่าง --</option>
+        <option value="">
+          -- เลือกช่าง --
+        </option>
 
         ${techs.map(
           x => `
@@ -2694,11 +2670,14 @@ function technicianAssignHtml(t){
               value="${escAttr(x.full_name)}"
               data-id="${escAttr(x.line_user_id || '')}"
               ${
-                String(t.technician || '') === String(x.full_name || '')
+                String(t.technician || '') ===
+                String(x.full_name || '')
                   ? 'selected'
                   : ''
               }>
+
               ${esc(x.full_name || '-')}
+
             </option>
           `
         ).join('')}
@@ -2709,13 +2688,16 @@ function technicianAssignHtml(t){
         type="button"
         class="btn-blue small-btn"
         onclick="assignTechnicianUI(this,'${escAttr(t.ticket_no)}')">
+
         👷 มอบหมาย
+
       </button>
 
     </div>
   `;
 
 }
+
 
 /* =========================================================
    VIEW TICKET
@@ -2989,51 +2971,20 @@ async function saveTicketEdit(no){
    TICKET CANCEL (Supervisor / Admin)
 ========================================================= */
 
-function askConfirm(message, confirmLabel){
-
-  return new Promise(resolve => {
-
-    modalPromptResolve = resolve;
-
-    document.getElementById('modalTitle').textContent = 'ยืนยันการทำงาน';
-
-    document.getElementById('modalBody').innerHTML = `
-      <p style="margin:0 0 18px;color:#374151;font-size:14px;line-height:1.6;">
-        ${esc(message)}
-      </p>
-      <div class="ticket-actions">
-        <button class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
-        <button class="btn-danger" onclick="confirmDialogYes()">${esc(confirmLabel || 'ยืนยัน')}</button>
-      </div>
-    `;
-
-    openModal();
-
-  });
-
-}
-
-function confirmDialogYes(){
-
-  if(modalPromptResolve){
-    const resolve = modalPromptResolve;
-    modalPromptResolve = null;
-    closeModal(false);
-    resolve(true);
-  }
-
-}
-
 async function cancelTicketUI(no){
 
-  const confirmed = await askConfirm(
-    'ยืนยันยกเลิกงาน ' + no + ' ใช่หรือไม่?',
-    'ยกเลิกงาน'
+  if(
+    !confirm(
+      'ยืนยันยกเลิกงาน ' +
+      no +
+      ' ใช่หรือไม่?'
+    )
+  )return;
+
+  await changeTicketStatus(
+    no,
+    'CANCELLED'
   );
-
-  if(!confirmed) return;
-
-  await changeTicketStatus(no, 'CANCELLED');
 
 }
 
@@ -3049,7 +3000,8 @@ async function assignTechnicianUI(btn, no){
     const row = btn.closest('.assign-row');
     const select = row ? row.querySelector('select') : null;
 
-    const technician = select ? select.value : '';
+    const technician =
+      select ? select.value : '';
 
     const technicianId =
       select && select.selectedIndex >= 0
@@ -3057,36 +3009,68 @@ async function assignTechnicianUI(btn, no){
         : '';
 
     if(!technician){
-      toast('กรุณาเลือกช่าง', 'error');
+
+      toast(
+        'กรุณาเลือกช่าง',
+        'error'
+      );
+
       return;
+
     }
 
-    const r = await runServer('assignTechnician', {
-      line_user_id: currentUser.userId,
-      ticketNo: no,
-      technician: technician,
-      technicianId: technicianId
-    });
+    const r =
+      await runServer(
+        'assignTechnician',
+        {
+
+          line_user_id:
+            currentUser.userId,
+
+          ticketNo:no,
+
+          technician:technician,
+
+          technicianId:technicianId
+
+        }
+      );
 
     if(r.status !== 'success'){
-      throw new Error(r.message || 'มอบหมายงานไม่สำเร็จ');
+
+      throw new Error(
+        r.message ||
+        'มอบหมายงานไม่สำเร็จ'
+      );
+
     }
 
-    toast('มอบหมายงานแล้ว', 'success');
+    toast(
+      'มอบหมายงานแล้ว',
+      'success'
+    );
 
     if(!document.getElementById('modal').classList.contains('hidden')){
       closeModal(false);
     }
 
     await loadInitialData();
+
     showView('taskSection');
+
     renderTaskList();
 
   }catch(e){
-    toast(e.message, 'error');
+
+    toast(
+      e.message,
+      'error'
+    );
+
   }
 
 }
+
 
 /* =========================================================
    STATUS UPDATE
@@ -3402,16 +3386,20 @@ function openStockMove(type,ticketNo){
       x => {
 
         const code =
-          String(x.item_code || '').trim();
+          String(
+            x.item_code || ''
+          ).trim();
 
         if(!code)return '';
 
         return `
           <option value="${escAttr(code)}">
+
             ${esc(x.item_name || code)}
             —
             Stock ${esc(x.stock ?? 0)}
             ${esc(x.unit || '')}
+
           </option>
         `;
 
@@ -3434,42 +3422,83 @@ function openStockMove(type,ticketNo){
 
   }
 
-  document.getElementById('modalTitle').textContent =
-    type === 'IN' ? '📥 Stock In' : '📤 Stock Out';
+  document.getElementById(
+    'modalTitle'
+  ).textContent =
+    type === 'IN'
+      ? '📥 Stock In'
+      : '📤 Stock Out';
 
-  document.getElementById('modalBody').innerHTML = `
+  document.getElementById(
+    'modalBody'
+  ).innerHTML = `
 
     <div class="form-group">
+
       <label>สินค้า</label>
+
       <select id="moveCode">
-        <option value="">-- เลือกรายการสินค้า --</option>
+
+        <option value="">
+          -- เลือกรายการสินค้า --
+        </option>
+
         ${options}
+
       </select>
+
     </div>
 
     <div class="form-group">
+
       <label>จำนวน</label>
-      <input id="moveQty" type="number" min="1" step="1">
+
+      <input
+        id="moveQty"
+        type="number"
+        min="1"
+        step="1">
+
     </div>
 
     <div class="form-group">
-      <label>${type === 'IN' ? 'แหล่งที่มา' : 'นำไปใช้ที่ไหน'}</label>
+
+      <label>
+        ${type === 'IN'
+          ? 'แหล่งที่มา'
+          : 'นำไปใช้ที่ไหน'}
+      </label>
+
       <input
         id="movePurpose"
         value="${escAttr(purposeValue)}"
         ${purposeReadonly}
-        placeholder="${type === 'IN' ? 'เช่น Supplier / PO' : 'เช่น ห้อง 305 / งาน PM'}">
+        placeholder="${
+          type === 'IN'
+            ? 'เช่น Supplier / PO'
+            : 'เช่น ห้อง 305 / งาน PM'
+        }">
+
     </div>
 
     <div class="form-group">
+
       <label>หมายเหตุ</label>
-      <textarea id="moveNote"></textarea>
+
+      <textarea
+        id="moveNote"></textarea>
+
     </div>
 
     <button
       class="btn-primary"
-      onclick="saveStockMove('${type}','${escAttr(ticketNo || '')}')">
+      onclick="saveStockMove(
+        '${type}',
+        '${escAttr(ticketNo || '')}'
+      )">
+
       💾 บันทึก
+
     </button>
 
   `;
@@ -4349,6 +4378,47 @@ function confirmWorkNote(){
 
 
 /* =========================================================
+   CONFIRM DIALOG
+========================================================= */
+
+function askConfirm(message, confirmLabel){
+
+  return new Promise(resolve => {
+
+    modalPromptResolve = resolve;
+
+    document.getElementById('modalTitle').textContent = 'ยืนยันการทำงาน';
+
+    document.getElementById('modalBody').innerHTML = `
+      <p style="margin:0 0 18px;color:#374151;font-size:14px;line-height:1.6;">
+        ${esc(message)}
+      </p>
+      <div class="ticket-actions">
+        <button class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn-danger" onclick="confirmDialogYes()">${esc(confirmLabel || 'ยืนยัน')}</button>
+      </div>
+    `;
+
+    openModal();
+
+  });
+
+}
+
+
+function confirmDialogYes(){
+
+  if(modalPromptResolve){
+    const resolve = modalPromptResolve;
+    modalPromptResolve = null;
+    closeModal(false);
+    resolve(true);
+  }
+
+}
+
+
+/* =========================================================
    MODAL
 ========================================================= */
 
@@ -4376,7 +4446,7 @@ function closeModal(resolveCancel=true){
     resolve(false);
 
   }
-  ...
+
   document
     .getElementById('modal')
     .classList.add('hidden');
