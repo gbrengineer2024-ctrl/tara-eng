@@ -600,6 +600,17 @@ td{
   background:#f3f4f6;
 }
 
+.confirm-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.confirm-actions button{
+  width:auto;
+  padding:10px 18px;
+}
+
 /* =========================================================
    LOADING
 ========================================================= */
@@ -1290,7 +1301,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycbxB09S9m7GlRmiiYiSeg8eKHam9zljJNQjnfj5IQl1L_EBfqJvcfykxKfrNIharJvk/exec';
+'https://script.google.com/macros/s/AKfycby1Mpy6zbemQ8IY2l6MKvAWU3NPl4c-nM6DTThGOdogpCkjVDpKYesskIw3DaKgDdCm/exec';
 
 
 /* =========================================================
@@ -2429,26 +2440,6 @@ function ticketActionButtons(t){
   const buttons = [];
 
   if(
-    s === 'NEW' &&
-    hasPermission('CHANGE_STATUS')
-  ){
-
-    buttons.push(`
-      <button
-        class="btn-blue"
-        onclick="changeTicketStatus(
-          '${escAttr(t.ticket_no)}',
-          'ASSIGNED'
-        )">
-
-        ▶ มอบหมายงาน
-
-      </button>
-    `);
-
-  }
-
-  if(
     s === 'ASSIGNED' &&
     hasPermission('CHANGE_STATUS')
   ){
@@ -2973,13 +2964,12 @@ async function saveTicketEdit(no){
 
 async function cancelTicketUI(no){
 
-  if(
-    !confirm(
-      'ยืนยันยกเลิกงาน ' +
-      no +
-      ' ใช่หรือไม่?'
-    )
-  )return;
+  const confirmed = await askConfirm(
+    'ยืนยันยกเลิกงาน ' + no + ' ใช่หรือไม่?',
+    'ยกเลิกงาน'
+  );
+
+  if(!confirmed) return;
 
   await changeTicketStatus(
     no,
@@ -4393,7 +4383,7 @@ function askConfirm(message, confirmLabel){
       <p style="margin:0 0 18px;color:#374151;font-size:14px;line-height:1.6;">
         ${esc(message)}
       </p>
-      <div class="ticket-actions">
+      <div class="confirm-actions">
         <button class="btn-secondary" onclick="closeModal()">ยกเลิก</button>
         <button class="btn-danger" onclick="confirmDialogYes()">${esc(confirmLabel || 'ยืนยัน')}</button>
       </div>
