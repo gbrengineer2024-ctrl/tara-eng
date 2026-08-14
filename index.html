@@ -1306,7 +1306,7 @@ td{
 const LIFF_ID = '2010924055-ptu13GAx';
 
 const API_URL =
-'https://script.google.com/macros/s/AKfycby1Mpy6zbemQ8IY2l6MKvAWU3NPl4c-nM6DTThGOdogpCkjVDpKYesskIw3DaKgDdCm/exec';
+'https://script.google.com/macros/s/AKfycbwCI4A5HOmuunTQIZguyXtRFkv_9KQouIz6Qjb8pFfM6SvA0SLX8zEKcrJcAduCC-0a/exec';
 
 
 /* =========================================================
@@ -1362,9 +1362,10 @@ async function initSystem(){
     // liff.getDecodedIDToken() reads the ID token that liff.init()
     // already fetched — it costs no extra network round trip, unlike
     // liff.getProfile() which calls out to LINE's servers again.
-    // Grabbing the userId this way lets us start the getUser call to
-    // our own backend immediately, in parallel with getProfile(),
-    // instead of waiting for getProfile() to finish first.
+    // Grabbing the userId this way lets us start the 'bootstrap'
+    // call (auth check + all initial data in one shot) immediately,
+    // in parallel with getProfile(), instead of waiting for
+    // getProfile() to finish first.
     let idToken = null;
 
     try{
@@ -1382,7 +1383,7 @@ async function initSystem(){
       quickUserId
 
         ? runServer(
-            'getUser',
+            'bootstrap',
             { userId:quickUserId }
           )
 
@@ -1398,17 +1399,21 @@ async function initSystem(){
 
     if(authPromise){
 
-      // The getUser call was already in flight — just wait for it
-      // and handle the result without firing it a second time.
+      // The bootstrap call was already in flight — just wait for
+      // it and handle the result without firing anything a second
+      // time. On success this already contains every field
+      // loadInitialData() would otherwise have made a SECOND
+      // round trip to fetch.
       const r = await authPromise;
 
-      await handleAuthResult(r);
+      await handleBootstrapResult(r);
 
     }else{
 
       // Fallback for the rare case getDecodedIDToken() isn't
       // available (e.g. openid scope not granted) — behaves exactly
-      // like before, one call after the other.
+      // like before, one call after the other via getUser +
+      // getInitialData.
       await checkUserAuth();
 
     }
@@ -1493,6 +1498,45 @@ async function checkUserAuth(){
 }
 
 
+async function handleBootstrapResult(r){
+
+  if(
+    r &&
+    r.status === 'success' &&
+    r.registered
+  ){
+
+    currentUser = Object.assign(
+      {},
+      currentUser,
+      r.data || r.user || {}
+    );
+
+    setLoading('⏳ กำลังโหลดข้อมูลระบบ...');
+
+    // bootstrap already returned everything loadInitialData()
+    // would otherwise fetch separately — apply it directly,
+    // no extra runServer() call needed.
+    applySystemData(r);
+
+    return;
+  }
+
+  if(r && r.status === 'NOT_REGISTERED'){
+
+    showRegister();
+
+    return;
+  }
+
+  throw new Error(
+    (r && r.message) ||
+    'ไม่สามารถตรวจสอบบัญชีได้'
+  );
+
+}
+
+
 async function handleAuthResult(r){
 
   if(
@@ -1558,50 +1602,57 @@ async function loadInitialData(){
 
     }
 
-    systemData = Object.assign(
-      systemData,
-      r
-    );
-
-    if(r.user){
-
-      currentUser = Object.assign(
-        {},
-        currentUser,
-        r.user
-      );
-
-    }
-
-    hideAllViews();
-
-    updateHeader();
-
-    updateSummary();
-
-    renderDashboardScopeTabs();
-
-    renderDashboardTickets();
-
-    applyPermissions();
-
-    populateDepartmentOptions();
-
-    document
-      .getElementById('app')
-      .classList.remove('hidden');
-
-    document
-      .getElementById('loadingScreen')
-      .classList.add('hidden');
-
-    showView('dashboardSection');
+    applySystemData(r);
 
   }catch(e){
 
     showFatalError(e.message);
 
   }
+
+}
+
+
+function applySystemData(r){
+
+  systemData = Object.assign(
+    systemData,
+    r
+  );
+
+  if(r.user){
+
+    currentUser = Object.assign(
+      {},
+      currentUser,
+      r.user
+    );
+
+  }
+
+  hideAllViews();
+
+  updateHeader();
+
+  updateSummary();
+
+  renderDashboardScopeTabs();
+
+  renderDashboardTickets();
+
+  applyPermissions();
+
+  populateDepartmentOptions();
+
+  document
+    .getElementById('app')
+    .classList.remove('hidden');
+
+  document
+    .getElementById('loadingScreen')
+    .classList.add('hidden');
+
+  showView('dashboardSection');
 
 }
 
