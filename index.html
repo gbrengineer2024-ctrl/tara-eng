@@ -733,7 +733,7 @@ td{
 <div id="loadingScreen">
   <div class="loading-box">
     <div class="spinner"></div>
-    <div id="loadingText">กำลังเชื่อมต่อระบบ...</div>
+    <div id="loadingText">กำลังเข้าระบบแจ้งซ่อม...</div>
   </div>
 </div>
 
@@ -1362,10 +1362,6 @@ async function initSystem(){
     // liff.getDecodedIDToken() reads the ID token that liff.init()
     // already fetched — it costs no extra network round trip, unlike
     // liff.getProfile() which calls out to LINE's servers again.
-    // Grabbing the userId this way lets us start the 'bootstrap'
-    // call (auth check + all initial data in one shot) immediately,
-    // in parallel with getProfile(), instead of waiting for
-    // getProfile() to finish first.
     let idToken = null;
 
     try{
@@ -1379,41 +1375,44 @@ async function initSystem(){
         ? idToken.sub
         : null;
 
-    const authPromise =
-      quickUserId
+    if(quickUserId){
 
-        ? runServer(
-            'bootstrap',
-            { userId:quickUserId }
-          )
+      // bootstrap() already returns full_name / department / role
+      // from our own Users sheet, so the dashboard doesn't actually
+      // need liff.getProfile() to render. Set the minimum needed to
+      // call the API, fetch the LINE profile in the BACKGROUND
+      // (only used for the avatar photo), and don't make the user
+      // wait on it — this turns the login critical path into a
+      // single network call instead of two.
+      currentUser = {
+        userId:quickUserId,
+        displayName:'',
+        pictureUrl:''
+      };
 
-        : null;
+      fetchProfilePictureInBackground_();
 
-    currentProfile = await liff.getProfile();
-
-    currentUser = {
-      userId:currentProfile.userId,
-      displayName:currentProfile.displayName,
-      pictureUrl:currentProfile.pictureUrl || ''
-    };
-
-    if(authPromise){
-
-      // The bootstrap call was already in flight — just wait for
-      // it and handle the result without firing anything a second
-      // time. On success this already contains every field
-      // loadInitialData() would otherwise have made a SECOND
-      // round trip to fetch.
-      const r = await authPromise;
+      const r = await runServer(
+        'bootstrap',
+        { userId:quickUserId }
+      );
 
       await handleBootstrapResult(r);
 
     }else{
 
       // Fallback for the rare case getDecodedIDToken() isn't
-      // available (e.g. openid scope not granted) — behaves exactly
-      // like before, one call after the other via getUser +
-      // getInitialData.
+      // available (e.g. openid scope not granted) — needs the full
+      // profile first to get a userId at all, then behaves like
+      // before via getUser + getInitialData.
+      currentProfile = await liff.getProfile();
+
+      currentUser = {
+        userId:currentProfile.userId,
+        displayName:currentProfile.displayName,
+        pictureUrl:currentProfile.pictureUrl || ''
+      };
+
       await checkUserAuth();
 
     }
@@ -1423,6 +1422,57 @@ async function initSystem(){
     showFatalError(e.message);
 
   }
+
+}
+
+
+// Fetches the LINE profile (display name + avatar photo) in the
+// background, without making the dashboard wait on it. bootstrap()
+// already supplies the name/department/role we actually rely on,
+// so a slow or failed LINE profile call should never hold up or
+// break login — worst case the avatar just stays blank.
+function fetchProfilePictureInBackground_(){
+
+  liff.getProfile()
+    .then(function(profile){
+
+      currentProfile = profile;
+
+      currentUser = Object.assign(
+        {},
+        currentUser,
+        {
+          displayName:
+            currentUser.displayName ||
+            profile.displayName,
+
+          pictureUrl:
+            profile.pictureUrl || ''
+        }
+      );
+
+      if(currentUser.pictureUrl){
+
+        const img =
+          document.getElementById(
+            'userProfilePicture'
+          );
+
+        if(img){
+          img.src = currentUser.pictureUrl;
+        }
+
+      }
+
+    })
+    .catch(function(e){
+
+      console.warn(
+        'liff.getProfile() (background) failed:',
+        e
+      );
+
+    });
 
 }
 
@@ -4609,12 +4659,17 @@ function toast(message,type){
 }
 
 
+// Every call site in the login/data-load flow still passes its own
+// descriptive text (kept so the code stays self-documenting at each
+// step), but the person asked for a single unified message on
+// screen — so this ignores the argument and always shows the same
+// text instead of the old per-step messages.
 function setLoading(message){
 
   document.getElementById(
     'loadingText'
   ).textContent =
-    message;
+    'กำลังเข้าระบบแจ้งซ่อม...';
 
 }
 
